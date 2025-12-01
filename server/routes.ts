@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { insertOrderSchema, type Order } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 
-const ADMIN_PASSWORD = "luxeparfum2024";
+const ADMIN_PASSWORD = "parfum";
 
 let adminWss: WebSocketServer;
 let visitorWss: WebSocketServer;
