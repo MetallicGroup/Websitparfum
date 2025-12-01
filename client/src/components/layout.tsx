@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { products } from "@/lib/products";
@@ -55,10 +55,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <SheetTitle className="font-serif text-2xl">Parfumerie</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-                <Link href="/category/women" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Damă</Link>
-                <Link href="/category/men" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Bărbați</Link>
-                <Link href="/category/unisex" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Unisex</Link>
+                <SheetClose asChild>
+                  <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">Home</Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link href="/category/women" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Damă</Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link href="/category/men" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Bărbați</Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link href="/category/unisex" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Unisex</Link>
+                </SheetClose>
               </nav>
             </SheetContent>
           </Sheet>

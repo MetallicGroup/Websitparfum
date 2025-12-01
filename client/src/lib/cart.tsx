@@ -1,5 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { Product } from "./products";
 
 type CartItem = Product & { quantity: number };
@@ -21,7 +20,6 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const { toast } = useToast();
   const SHIPPING_THRESHOLD = 250;
   const SHIPPING_COST = 15;
 
@@ -60,12 +58,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         currency: 'RON',
       });
     }
-    
-    toast({
-      title: "Adăugat în coș",
-      description: `${product.name} a fost adăugat.`,
-      duration: 2000,
-    });
   };
 
   const removeFromCart = (id: string) => {
