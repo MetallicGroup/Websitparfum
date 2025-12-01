@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { CheckCircle2, Truck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 const formSchema = z.object({
@@ -28,6 +28,22 @@ export default function Checkout() {
   const { toast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
   const [, setLocation] = useLocation();
+
+  // TikTok Pixel - InitiateCheckout Event
+  useEffect(() => {
+    if (items.length > 0 && typeof window !== 'undefined' && (window as any).ttq) {
+      (window as any).ttq.track('InitiateCheckout', {
+        contents: items.map(item => ({
+          content_id: item.id,
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        value: grandTotal,
+        currency: 'RON',
+      });
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,6 +91,20 @@ export default function Checkout() {
       return response.json();
     },
     onSuccess: (data) => {
+      // TikTok Pixel - CompletePayment Event
+      if (typeof window !== 'undefined' && (window as any).ttq) {
+        (window as any).ttq.track('CompletePayment', {
+          contents: items.map(item => ({
+            content_id: item.id,
+            content_name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          value: grandTotal,
+          currency: 'RON',
+        });
+      }
+
       setIsSuccess(true);
       clearCart();
       toast({
