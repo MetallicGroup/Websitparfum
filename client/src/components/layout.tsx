@@ -14,6 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { items, itemsCount, total, shippingThreshold, shippingCost, grandTotal, removeFromCart, updateQuantity } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const remainingForFreeShipping = shippingThreshold - total;
@@ -43,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           {/* Mobile Menu */}
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
@@ -54,10 +55,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <SheetTitle className="font-serif text-2xl">Parfumerie</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">Home</Link>
-                <Link href="/category/women" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Damă</Link>
-                <Link href="/category/men" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Bărbați</Link>
-                <Link href="/category/unisex" className="text-lg font-medium hover:text-primary transition-colors">Parfumuri Unisex</Link>
+                <Link href="/" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+                <Link href="/category/women" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Damă</Link>
+                <Link href="/category/men" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Bărbați</Link>
+                <Link href="/category/unisex" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Parfumuri Unisex</Link>
               </nav>
             </SheetContent>
           </Sheet>
