@@ -1,19 +1,26 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Phone } from "lucide-react";
+import { ShoppingBag, Menu, X, Phone, Search } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { products } from "@/lib/products";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { items, itemsCount, total, shippingThreshold, shippingCost, grandTotal, removeFromCart, updateQuantity } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const remainingForFreeShipping = shippingThreshold - total;
+
+  const filteredProducts = products.filter(product => 
+    searchQuery.length > 1 && product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
@@ -75,6 +82,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Search Bar (Desktop) */}
+            <div className="relative hidden md:block w-64 mr-2">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Caută..." 
+                className="pl-8 h-9 bg-secondary/50 border-none focus-visible:ring-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {/* Search Dropdown */}
+              {searchQuery.length > 1 && (
+                <div className="absolute top-full right-0 mt-2 w-72 bg-card rounded-md shadow-xl border z-50 max-h-[300px] overflow-y-auto p-2">
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.slice(0, 5).map(product => (
+                      <Link key={product.id} href={`/category/${product.category}`} onClick={() => setSearchQuery("")}>
+                        <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-sm cursor-pointer transition-colors">
+                          <div className="h-8 w-8 bg-secondary rounded flex items-center justify-center overflow-hidden">
+                             <img src={product.image} alt="" className="h-full w-full object-contain mix-blend-multiply" />
+                          </div>
+                          <div className="overflow-hidden">
+                            <p className="text-sm font-medium truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.price} Lei</p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground p-2 text-center">Nu am găsit rezultate.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
              <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
