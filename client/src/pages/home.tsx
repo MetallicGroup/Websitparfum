@@ -328,7 +328,7 @@ export default function Home() {
               Scrie-ne pe WhatsApp și te ajutăm să alegi parfumul perfect pentru tine!
             </p>
             <a 
-              href="https://wa.me/40733342513?text=Buna%20ziua!%20As%20dori%20mai%20multe%20informatii%20despre%20parfumurile%20dumneavoastra."
+              href="https://wa.me/40771267846?text=Buna%20ziua!%20As%20dori%20mai%20multe%20informatii%20despre%20parfumurile%20dumneavoastra."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-white text-green-600 font-bold px-6 py-3 rounded-full hover:bg-green-50 transition-colors shadow-lg"
