@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       className="group relative bg-card rounded-sm border border-transparent hover:border-border/50 hover:shadow-lg transition-all duration-300 flex flex-col h-full"
+      data-testid={`card-product-${product.id}`}
     >
       {/* Discount Badge */}
       <Badge 
@@ -24,43 +26,51 @@ export function ProductCard({ product }: { product: Product }) {
         -{discountPercentage}%
       </Badge>
 
-      {/* Image Container */}
-      <div className="aspect-[4/5] w-full bg-secondary/30 p-6 flex items-center justify-center overflow-hidden relative">
-        <motion.img 
-          src={product.image} 
-          alt={product.name}
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.5 }}
-          className="w-full h-full object-contain mix-blend-multiply drop-shadow-xl"
-        />
-        
-        {/* Quick Add Button (Overlay) */}
-        <div className="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-          <Button 
-            className="w-full shadow-lg font-medium tracking-wide" 
-            onClick={() => addToCart(product)}
-          >
-            <ShoppingBag className="mr-2 h-4 w-4" /> Adaugă în coș
-          </Button>
+      {/* Image Container - Clickable */}
+      <Link href={`/product/${product.id}`}>
+        <div className="aspect-[4/5] w-full bg-secondary/30 p-6 flex items-center justify-center overflow-hidden relative cursor-pointer">
+          <motion.img 
+            src={product.image} 
+            alt={product.name}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.5 }}
+            className="w-full h-full object-contain mix-blend-multiply drop-shadow-xl"
+          />
         </div>
+      </Link>
+      
+      {/* Quick Add Button - Below image on mobile, overlay on desktop */}
+      <div className="px-4 py-2 md:absolute md:bottom-4 md:left-0 md:right-0 md:px-4 md:py-0 md:opacity-0 group-hover:md:opacity-100 transition-all duration-300 md:translate-y-4 group-hover:md:translate-y-0">
+        <Button 
+          className="w-full shadow-lg font-medium tracking-wide text-sm md:text-base" 
+          onClick={(e) => {
+            e.preventDefault();
+            addToCart(product);
+          }}
+          data-testid={`button-add-cart-${product.id}`}
+        >
+          <ShoppingBag className="mr-2 h-4 w-4" /> Adaugă în coș
+        </Button>
       </div>
 
-      {/* Info */}
-      <div className="p-4 flex flex-col flex-1 gap-2">
-        <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-          {product.category === 'women' ? 'Parfum Damă' : product.category === 'men' ? 'Parfum Bărbați' : 'Parfum Unisex'}
+      {/* Info - Clickable */}
+      <Link href={`/product/${product.id}`}>
+        <div className="p-4 pt-2 flex flex-col flex-1 gap-1 cursor-pointer">
+          <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider font-medium">
+            {product.category === 'women' ? 'Parfum Damă' : product.category === 'men' ? 'Parfum Bărbați' : 'Parfum Unisex'} • 100ml
+          </div>
+          <h3 className="font-serif text-sm md:text-lg font-medium leading-tight group-hover:text-primary transition-colors line-clamp-2">
+            {product.name}
+          </h3>
+          
+          <div className="mt-auto pt-2 flex items-baseline gap-2 md:gap-3">
+            <span className="text-base md:text-lg font-bold text-foreground">{product.price} Lei</span>
+            <span className="text-xs md:text-sm text-muted-foreground line-through decoration-destructive/50 decoration-2">
+              {product.oldPrice} Lei
+            </span>
+          </div>
         </div>
-        <h3 className="font-serif text-lg font-medium leading-tight group-hover:text-primary transition-colors line-clamp-2">
-          {product.name}
-        </h3>
-        
-        <div className="mt-auto pt-2 flex items-baseline gap-3">
-          <span className="text-lg font-bold text-foreground">{product.price} Lei</span>
-          <span className="text-sm text-muted-foreground line-through decoration-destructive/50 decoration-2">
-            {product.oldPrice} Lei
-          </span>
-        </div>
-      </div>
+      </Link>
     </motion.div>
   );
 }

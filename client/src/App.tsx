@@ -6,6 +6,7 @@ import { CartProvider } from "@/lib/cart";
 import { Layout } from "@/components/layout";
 import Home from "@/pages/home";
 import Category from "@/pages/category";
+import Product from "@/pages/product";
 import Checkout from "@/pages/checkout";
 import NotFound from "@/pages/not-found";
 
@@ -15,6 +16,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home}/>
         <Route path="/category/:type" component={Category}/>
+        <Route path="/product/:id" component={Product}/>
         <Route path="/checkout" component={Checkout}/>
         <Route component={NotFound} />
       </Switch>
