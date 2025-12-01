@@ -42,9 +42,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight mb-4 text-shadow-lg">
-                Parfumatica <br />
-                <span className="text-white italic">Reduceri Speciale</span>
+              <h1 className="font-serif text-5xl md:text-7xl font-black leading-tight mb-4 text-shadow-lg tracking-tight">
+                Luxe Parfum <br />
+                <span className="text-white italic font-medium">Reduceri Speciale</span>
               </h1>
               <p className="text-lg md:text-xl text-white font-medium max-w-lg leading-relaxed text-shadow">
                 Alege parfumurile tale preferate și bucură-te de reduceri speciale.
