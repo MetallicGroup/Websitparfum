@@ -121,7 +121,7 @@ export default function Home() {
                 <img 
                   src={women2} 
                   alt="Women Perfume 2" 
-                  className="absolute right-24 bottom-12 w-36 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 z-10 opacity-90" 
+                  className="absolute right-24 bottom-24 w-40 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 z-10 opacity-90" 
                 />
                 <img 
                   src={women3} 
@@ -165,7 +165,7 @@ export default function Home() {
                     className="absolute right-10 -top-6 w-20 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 z-0 opacity-80" 
                   />
                 </div>
-                <div className="absolute inset-0 flex items-center justify-between px-6 z-30">
+                <div className="absolute inset-0 flex items-center justify-start pl-4 z-30">
                   <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
                     <h3 className="font-serif text-xl font-bold text-slate-900">BĂRBAȚI</h3>
                     <p className="text-xs font-bold text-red-600">MEGA REDUCERI</p>
@@ -198,7 +198,7 @@ export default function Home() {
                     -25%
                   </div>
                 </div>
-                <div className="absolute inset-0 flex items-center px-6 z-30">
+                <div className="absolute inset-0 flex items-center justify-start pl-4 z-30">
                   <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
                     <h3 className="font-serif text-xl font-bold text-teal-900">UNISEX</h3>
                     <p className="text-xs font-bold text-teal-700">Parfumuri</p>
