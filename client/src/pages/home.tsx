@@ -59,7 +59,7 @@ export default function Home() {
   return (
     <div className="space-y-12 md:space-y-20 pb-20">
       {/* HERO SECTION - Mobile Optimized */}
-      <section className="relative min-h-[60vh] md:min-h-[80vh] flex items-center overflow-hidden py-8 md:py-0">
+      <section className="relative min-h-[60vh] md:min-h-[80vh] flex items-center py-8 md:py-0" style={{ zIndex: 30 }}>
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105"
           style={{ backgroundImage: `url(${heroBg})` }}
@@ -99,7 +99,7 @@ export default function Home() {
                   data-testid="input-search"
                 />
                 {searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl p-2 z-50 max-h-[300px] overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl p-2 max-h-[400px] overflow-y-auto" style={{ zIndex: 9999 }}>
                     {filteredProducts.length > 0 ? (
                       filteredProducts.slice(0, 5).map(product => (
                         <Link key={product.id} href={`/category/${product.category}`}>
