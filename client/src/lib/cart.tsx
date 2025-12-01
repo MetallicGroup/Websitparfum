@@ -58,6 +58,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         currency: 'RON',
       });
     }
+
+    // Track cart add for visitor tracking
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent("cart-add"));
+    }
   };
 
   const removeFromCart = (id: string) => {
