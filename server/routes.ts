@@ -1,8 +1,23 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertOrderSchema } from "@shared/schema";
+import { insertOrderSchema, type Order } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+
+const ADMIN_PASSWORD = "luxeparfum2024";
+
+let wss: WebSocketServer;
+const adminClients: Set<WebSocket> = new Set();
+
+function broadcastOrder(order: Order) {
+  const message = JSON.stringify({ type: "new_order", order });
+  adminClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 async function sendWhatsAppMessage(to: string, templateName: string, parameters: string[]) {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -58,6 +73,73 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Setup WebSocket server for admin real-time updates
+  wss = new WebSocketServer({ server: httpServer, path: "/ws/admin" });
+  
+  wss.on("connection", (ws, req) => {
+    console.log("Admin WebSocket connected");
+    adminClients.add(ws);
+    
+    ws.on("close", () => {
+      console.log("Admin WebSocket disconnected");
+      adminClients.delete(ws);
+    });
+
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
+      adminClients.delete(ws);
+    });
+  });
+
+  // Get all orders (for admin)
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const orders = await storage.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  });
+
+  // Update order status
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      const order = await storage.updateOrderStatus(req.params.id, status);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      // Broadcast status update to admin clients
+      const message = JSON.stringify({ type: "order_updated", order });
+      adminClients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
+        }
+      });
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      res.status(500).json({ error: "Failed to update order" });
+    }
+  });
+
   app.post("/api/orders", async (req, res) => {
     try {
       const validation = insertOrderSchema.safeParse(req.body);
@@ -68,6 +150,9 @@ export async function registerRoutes(
       }
 
       const order = await storage.createOrder(validation.data);
+
+      // Broadcast new order to admin clients
+      broadcastOrder(order);
 
       const productList = order.products
         .map(p => `${p.quantity}x ${p.name} (${p.price} lei)`)
