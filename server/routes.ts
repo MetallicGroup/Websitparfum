@@ -158,8 +158,9 @@ export async function registerRoutes(
         .map(p => `${p.quantity}x ${p.name} (${p.price} lei)`)
         .join(", ");
 
-      const adminPhone = process.env.ADMIN_PHONE_NUMBER;
-      if (adminPhone) {
+      // Support multiple admin phone numbers (comma-separated)
+      const adminPhones = process.env.ADMIN_PHONE_NUMBER?.split(',').map(p => p.trim()).filter(Boolean) || [];
+      for (const adminPhone of adminPhones) {
         await sendWhatsAppMessage(
           adminPhone,
           "comanda",
