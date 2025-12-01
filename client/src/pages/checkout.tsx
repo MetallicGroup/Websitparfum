@@ -31,17 +31,33 @@ export default function Checkout() {
 
   // TikTok Pixel - InitiateCheckout Event
   useEffect(() => {
-    if (items.length > 0 && typeof window !== 'undefined' && (window as any).ttq) {
-      (window as any).ttq.track('InitiateCheckout', {
-        contents: items.map(item => ({
-          content_id: item.id,
-          content_name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        value: grandTotal,
-        currency: 'RON',
-      });
+    if (items.length > 0 && typeof window !== 'undefined') {
+      // TikTok
+      if ((window as any).ttq) {
+        (window as any).ttq.track('InitiateCheckout', {
+          contents: items.map(item => ({
+            content_id: item.id,
+            content_name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          value: grandTotal,
+          currency: 'RON',
+        });
+      }
+      // Facebook
+      if ((window as any).fbq) {
+        (window as any).fbq('track', 'InitiateCheckout', {
+          content_ids: items.map(item => item.id),
+          contents: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+          num_items: items.reduce((sum, item) => sum + item.quantity, 0),
+          value: grandTotal,
+          currency: 'RON',
+        });
+      }
     }
   }, []);
 
@@ -100,6 +116,21 @@ export default function Checkout() {
             quantity: item.quantity,
             price: item.price,
           })),
+          value: grandTotal,
+          currency: 'RON',
+        });
+      }
+
+      // Facebook Pixel - Purchase Event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'Purchase', {
+          content_ids: items.map(item => item.id),
+          contents: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+          content_type: 'product',
+          num_items: items.reduce((sum, item) => sum + item.quantity, 0),
           value: grandTotal,
           currency: 'RON',
         });
