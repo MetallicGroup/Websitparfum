@@ -173,6 +173,10 @@ export default function Checkout() {
           Comanda ta a fost înregistrată. Vei fi contactat în curând pentru confirmare.
           Plata se va face ramburs la curier.
         </p>
+        <div className="flex items-center gap-2 text-primary font-medium">
+          <Truck className="h-5 w-5" />
+          <span>Livrare în 2-3 zile lucrătoare</span>
+        </div>
         <Button onClick={() => setLocation("/")} size="lg">
           Înapoi la Magazin
         </Button>
@@ -347,6 +351,10 @@ export default function Checkout() {
               </div>
               <div className="bg-white border rounded-md p-3 mt-4 text-center text-sm font-medium">
                 💳 Plată Ramburs la Curier (Cash)
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-3 text-sm text-primary font-medium">
+                <Truck className="h-4 w-4" />
+                <span>Livrare în 2-3 zile lucrătoare</span>
               </div>
             </div>
           </div>
