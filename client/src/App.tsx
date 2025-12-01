@@ -8,19 +8,25 @@ import Home from "@/pages/home";
 import Category from "@/pages/category";
 import Product from "@/pages/product";
 import Checkout from "@/pages/checkout";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home}/>
-        <Route path="/category/:type" component={Category}/>
-        <Route path="/product/:id" component={Product}/>
-        <Route path="/checkout" component={Checkout}/>
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      <Route path="/admin" component={Admin}/>
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home}/>
+            <Route path="/category/:type" component={Category}/>
+            <Route path="/product/:id" component={Product}/>
+            <Route path="/checkout" component={Checkout}/>
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
 
