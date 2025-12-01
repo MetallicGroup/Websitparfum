@@ -64,7 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-serif text-2xl font-bold tracking-tight">LUXURY SCENTS</span>
+            <span className="font-serif text-2xl font-black tracking-tighter uppercase">Luxe Parfum</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -264,7 +264,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <footer className="bg-secondary py-12 mt-20">
         <div className="container grid md:grid-cols-3 gap-8 text-sm">
           <div>
-            <h3 className="font-serif text-lg font-bold mb-4">LUXURY SCENTS</h3>
+            <h3 className="font-serif text-lg font-black mb-4 uppercase">Luxe Parfum</h3>
             <p className="text-muted-foreground max-w-xs">
               Destinația ta pentru parfumuri de lux. Autenticitate garantată și experiență de shopping premium.
             </p>
@@ -287,7 +287,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="container mt-12 pt-8 border-t border-border/50 text-center text-xs text-muted-foreground">
-          © 2025 Luxury Scents. Toate drepturile rezervate.
+          © 2025 Luxe Parfum. Toate drepturile rezervate.
         </div>
       </footer>
     </div>
