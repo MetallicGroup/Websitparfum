@@ -8,9 +8,21 @@ import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
 import { products } from "@/lib/products";
 import heroBg from "@assets/generated_images/pastel_pink_hero_banner_with_perfume_bottles_on_podiums.png";
-import womenBg from "@assets/generated_images/women's_perfume_category_card_with_pink_aesthetic.png";
-import menBg from "@assets/generated_images/men's_perfume_category_card_with_bold_blue/black_aesthetic.png";
-import unisexBg from "@assets/generated_images/unisex_perfume_category_card_with_teal/turquoise_aesthetic.png";
+
+// Women Collage Images
+import women1 from "/products/Parfumatica_Main_Photos/DIOR J'adore Parfum d’Eau, Eau de Parfum, 100ml.jpg";
+import women2 from "/products/Parfumatica_Main_Photos/Carolina Herrera Good Girl, Eau de Parfum, 100ml.jpg";
+import women3 from "/products/Parfumatica_Main_Photos/Lancôme La Vie Est Belle, Eau de Parfum, 75 ml.jpg";
+
+// Men Collage Images
+import men1 from "/products/Parfumatica_Main_Photos/Dior Sauvage, Eau de Parfum, 100ml.jpg";
+import men2 from "/products/Parfumatica_Main_Photos/Jean Paul Gaultier Le Male Le Parfum, Eau de Parfum, 100 ml.jpg";
+import men3 from "/products/Parfumatica_Main_Photos/Armani Emporio Stronger With You Intensely, Eau de Parfum, 100ml.jpg";
+
+// Unisex Collage Images
+import unisex1 from "/products/Parfumatica_Main_Photos/Tom Ford Black Orchid, Eau de Parfum, 100ml.jpg";
+import unisex2 from "/products/Parfumatica_Main_Photos/Baccarat Rouge 540, Eau de Parfum, 70 ml.jpg";
+import unisex3 from "/products/Parfumatica_Main_Photos/Xerjoff Erba Pura, Eau de Parfum, 100ml.jpg";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,16 +109,34 @@ export default function Home() {
             className="hidden lg:grid grid-cols-2 gap-6"
           >
             {/* Women Card - Big */}
-            <Link href="/category/women" className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer shadow-2xl hover:shadow-pink-500/20 transition-all duration-500 border-4 border-white bg-white">
-              <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${womenBg})` }} />
+            <Link href="/category/women" className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer shadow-2xl hover:shadow-pink-500/20 transition-all duration-500 border-4 border-white bg-pink-50">
+              {/* Collage Background */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-10 left-10 w-40 h-40 bg-pink-200 rounded-full blur-3xl opacity-50"></div>
+                <img 
+                  src={women1} 
+                  alt="Women Perfume 1" 
+                  className="absolute -right-4 -bottom-4 w-48 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6 z-20" 
+                />
+                <img 
+                  src={women2} 
+                  alt="Women Perfume 2" 
+                  className="absolute right-24 bottom-12 w-36 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 z-10 opacity-90" 
+                />
+                <img 
+                  src={women3} 
+                  alt="Women Perfume 3" 
+                  className="absolute right-4 top-12 w-24 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 z-0 opacity-80" 
+                />
+              </div>
               
               {/* Floating Badge */}
-              <div className="absolute top-4 right-4 bg-red-600 text-white h-16 w-16 rounded-full flex items-center justify-center flex-col shadow-lg animate-bounce-slow">
+              <div className="absolute top-4 right-4 bg-red-600 text-white h-16 w-16 rounded-full flex items-center justify-center flex-col shadow-lg animate-bounce-slow z-30">
                 <span className="text-[10px] font-bold uppercase">Până la</span>
                 <span className="text-lg font-black leading-none">-30%</span>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/90 to-transparent p-6 pt-12 text-center">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 via-white/60 to-transparent p-6 pt-12 text-left">
                 <h3 className="font-serif text-3xl font-bold text-pink-900 mb-1">Dama</h3>
                 <span className="inline-block bg-pink-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md group-hover:bg-pink-700 transition-colors">
                   Cumpără Acum
@@ -116,11 +146,27 @@ export default function Home() {
             
             <div className="space-y-6">
               {/* Men Card */}
-              <Link href="/category/men" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-blue-900/20 transition-all duration-500 border-4 border-white bg-white">
-                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${menBg})` }} />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent" />
-                <div className="absolute inset-0 flex items-center justify-between px-6">
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+              <Link href="/category/men" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-blue-900/20 transition-all duration-500 border-4 border-white bg-blue-50">
+                <div className="absolute inset-0 overflow-hidden">
+                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-200 rounded-full blur-2xl opacity-50"></div>
+                   <img 
+                    src={men1} 
+                    alt="Men Perfume 1" 
+                    className="absolute -right-2 -bottom-2 w-32 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6 z-20" 
+                  />
+                  <img 
+                    src={men2} 
+                    alt="Men Perfume 2" 
+                    className="absolute right-20 bottom-4 w-24 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6 z-10" 
+                  />
+                   <img 
+                    src={men3} 
+                    alt="Men Perfume 3" 
+                    className="absolute right-10 -top-6 w-20 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 z-0 opacity-80" 
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-between px-6 z-30">
+                  <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
                     <h3 className="font-serif text-xl font-bold text-slate-900">BĂRBAȚI</h3>
                     <p className="text-xs font-bold text-red-600">MEGA REDUCERI</p>
                   </div>
@@ -128,16 +174,32 @@ export default function Home() {
               </Link>
 
               {/* Unisex Card */}
-              <Link href="/category/unisex" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-teal-500/20 transition-all duration-500 border-4 border-white bg-white">
-                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${unisexBg})` }} />
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-900/10 to-transparent" />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <Link href="/category/unisex" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-teal-500/20 transition-all duration-500 border-4 border-white bg-teal-50">
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-teal-200 rounded-full blur-2xl opacity-50"></div>
+                   <img 
+                    src={unisex1} 
+                    alt="Unisex Perfume 1" 
+                    className="absolute -right-2 -bottom-2 w-32 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6 z-20" 
+                  />
+                  <img 
+                    src={unisex2} 
+                    alt="Unisex Perfume 2" 
+                    className="absolute right-24 bottom-2 w-24 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-6 z-10" 
+                  />
+                  <img 
+                    src={unisex3} 
+                    alt="Unisex Perfume 3" 
+                    className="absolute right-8 -top-4 w-20 h-auto object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 z-0 opacity-80" 
+                  />
+                </div>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-40">
                   <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg rotate-12">
                     -25%
                   </div>
                 </div>
-                <div className="absolute inset-0 flex items-center px-6">
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+                <div className="absolute inset-0 flex items-center px-6 z-30">
+                  <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
                     <h3 className="font-serif text-xl font-bold text-teal-900">UNISEX</h3>
                     <p className="text-xs font-bold text-teal-700">Parfumuri</p>
                   </div>
