@@ -38,63 +38,27 @@ export default function Home() {
   return (
     <div className="space-y-20 pb-20">
       {/* HERO SECTION */}
-      <section className="relative h-[85vh] min-h-[700px] flex items-start pt-32 overflow-hidden">
-        {/* Dynamic Background with Real Bottles */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-pink-400 via-pink-200 to-white overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
-          
-          {/* Decorative Elements */}
-          <div className="absolute top-20 right-[10%] w-[500px] h-[500px] bg-white/30 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-gradient-to-t from-pink-500/20 to-transparent"></div>
-
-          {/* Real Perfume Bottles Composition - Hero */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[60%] h-full hidden lg:block pointer-events-none">
-             {/* Central Hero Bottle - Baccarat Rouge (The Red King) */}
-             <motion.img 
-              initial={{ opacity: 0, y: 100, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              src={unisex2} 
-              alt="Baccarat Rouge"
-              className="absolute right-[25%] top-[25%] w-[350px] h-auto object-contain drop-shadow-2xl z-20"
-            />
-
-            {/* Side Bottle Left - Good Girl (The Icon) */}
-            <motion.img 
-              initial={{ opacity: 0, x: -50, rotate: -10 }}
-              animate={{ opacity: 1, x: 0, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              src={women2} 
-              alt="Good Girl"
-              className="absolute right-[55%] top-[40%] w-[280px] h-auto object-contain drop-shadow-xl z-10 blur-[1px] hover:blur-0 transition-all duration-700"
-            />
-
-            {/* Side Bottle Right - Sauvage (The Bold) */}
-            <motion.img 
-              initial={{ opacity: 0, x: 50, rotate: 10 }}
-              animate={{ opacity: 1, x: 0, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.6 }}
-              src={men1} 
-              alt="Sauvage"
-              className="absolute right-[5%] top-[35%] w-[260px] h-auto object-contain drop-shadow-xl z-10 blur-[1px] hover:blur-0 transition-all duration-700"
-            />
-          </div>
+      <section className="relative h-[80vh] min-h-[600px] flex items-center overflow-hidden">
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105 animate-in fade-in duration-1000"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        >
+          {/* Removed dark overlay for the brighter pink aesthetic */}
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-transparent mix-blend-multiply" />
         </div>
 
-        <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-start h-full">
-          <div className="text-white space-y-8 max-w-2xl drop-shadow-lg pt-10">
+        <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-white space-y-6 max-w-2xl drop-shadow-lg">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="font-serif text-6xl md:text-8xl font-black leading-none mb-2 text-shadow-xl tracking-tighter text-white">
-                Luxe Parfum
+              <h1 className="font-serif text-5xl md:text-7xl font-black leading-tight mb-4 text-shadow-lg tracking-tight">
+                Luxe Parfum <br />
+                <span className="text-white italic font-medium">Reduceri Speciale</span>
               </h1>
-              <p className="text-2xl md:text-3xl text-white/90 font-light italic tracking-wide mb-6 text-shadow-md">
-                Reduceri Speciale
-              </p>
-              <p className="text-lg md:text-xl text-white font-medium max-w-lg leading-relaxed text-shadow-sm opacity-90">
+              <p className="text-lg md:text-xl text-white font-medium max-w-lg leading-relaxed text-shadow">
                 Alege parfumurile tale preferate și bucură-te de reduceri speciale.
                 Grăbește-te, oferta este limitată!
               </p>
@@ -107,10 +71,10 @@ export default function Home() {
               className="flex flex-wrap gap-4"
             >
               <div className="relative w-full max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
                   placeholder="Caută parfumul tău preferat..." 
-                  className="pl-10 h-14 bg-white/95 text-black border-none shadow-2xl text-lg rounded-full focus-visible:ring-primary placeholder:text-gray-400"
+                  className="pl-10 h-14 bg-white/90 text-black border-none shadow-lg text-lg rounded-full focus-visible:ring-primary"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -142,7 +106,7 @@ export default function Home() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="hidden lg:grid grid-cols-2 gap-6 mt-20"
+            className="hidden lg:grid grid-cols-2 gap-6"
           >
             {/* Women Card - Big */}
             <Link href="/category/women" className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer shadow-2xl hover:shadow-pink-500/20 transition-all duration-500 border-4 border-white bg-pink-50">
