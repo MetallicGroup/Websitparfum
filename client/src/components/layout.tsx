@@ -259,7 +259,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* WhatsApp Button */}
       <a
-        href="https://wa.me/40700000000?text=Buna%20ziua!%20Am%20nevoie%20de%20ajutor%20cu%20o%20comanda."
+        href="https://wa.me/40771267846?text=Buna%20ziua!%20Am%20nevoie%20de%20ajutor%20cu%20o%20comanda."
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 group"
