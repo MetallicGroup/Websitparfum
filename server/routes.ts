@@ -7,16 +7,37 @@ import { fromZodError } from "zod-validation-error";
 
 const ADMIN_PASSWORD = "luxeparfum2024";
 
-let wss: WebSocketServer;
+let adminWss: WebSocketServer;
+let visitorWss: WebSocketServer;
 const adminClients: Set<WebSocket> = new Set();
 
-function broadcastOrder(order: Order) {
-  const message = JSON.stringify({ type: "new_order", order });
+interface Visitor {
+  id: string;
+  page: string;
+  lastAction: string;
+  lastActionTime: Date;
+  connectedAt: Date;
+  device: string;
+}
+
+const activeVisitors: Map<WebSocket, Visitor> = new Map();
+
+function broadcastToAdmins(data: any) {
+  const message = JSON.stringify(data);
   adminClients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
     }
   });
+}
+
+function broadcastOrder(order: Order) {
+  broadcastToAdmins({ type: "new_order", order });
+}
+
+function broadcastVisitors() {
+  const visitors = Array.from(activeVisitors.values());
+  broadcastToAdmins({ type: "visitors_update", visitors, count: visitors.length });
 }
 
 async function sendWhatsAppMessage(to: string, templateName: string, parameters: string[]) {
@@ -74,11 +95,15 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // Setup WebSocket server for admin real-time updates
-  wss = new WebSocketServer({ server: httpServer, path: "/ws/admin" });
+  adminWss = new WebSocketServer({ server: httpServer, path: "/ws/admin" });
   
-  wss.on("connection", (ws, req) => {
+  adminWss.on("connection", (ws, req) => {
     console.log("Admin WebSocket connected");
     adminClients.add(ws);
+    
+    // Send current visitors immediately
+    const visitors = Array.from(activeVisitors.values());
+    ws.send(JSON.stringify({ type: "visitors_update", visitors, count: visitors.length }));
     
     ws.on("close", () => {
       console.log("Admin WebSocket disconnected");
@@ -88,6 +113,57 @@ export async function registerRoutes(
     ws.on("error", (error) => {
       console.error("WebSocket error:", error);
       adminClients.delete(ws);
+    });
+  });
+
+  // Setup WebSocket server for visitor tracking
+  visitorWss = new WebSocketServer({ server: httpServer, path: "/ws/visitor" });
+  
+  visitorWss.on("connection", (ws, req) => {
+    const visitorId = Math.random().toString(36).substring(2, 10);
+    const userAgent = req.headers["user-agent"] || "";
+    const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
+    
+    const visitor: Visitor = {
+      id: visitorId,
+      page: "/",
+      lastAction: "A intrat pe site",
+      lastActionTime: new Date(),
+      connectedAt: new Date(),
+      device: isMobile ? "Mobil" : "Desktop"
+    };
+    
+    activeVisitors.set(ws, visitor);
+    broadcastVisitors();
+    
+    ws.on("message", (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        const visitor = activeVisitors.get(ws);
+        if (visitor) {
+          if (data.type === "page_view") {
+            visitor.page = data.page;
+            visitor.lastAction = `Vizitează: ${data.pageName || data.page}`;
+            visitor.lastActionTime = new Date();
+          } else if (data.type === "action") {
+            visitor.lastAction = data.action;
+            visitor.lastActionTime = new Date();
+          }
+          broadcastVisitors();
+        }
+      } catch (e) {
+        console.error("Visitor message error:", e);
+      }
+    });
+    
+    ws.on("close", () => {
+      activeVisitors.delete(ws);
+      broadcastVisitors();
+    });
+
+    ws.on("error", () => {
+      activeVisitors.delete(ws);
+      broadcastVisitors();
     });
   });
 

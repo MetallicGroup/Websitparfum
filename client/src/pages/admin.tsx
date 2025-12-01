@@ -1,13 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell } from "lucide-react";
+import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell, Users, Monitor, Smartphone, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Order } from "@shared/schema";
+
+interface Visitor {
+  id: string;
+  page: string;
+  lastAction: string;
+  lastActionTime: string;
+  connectedAt: string;
+  device: string;
+}
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
@@ -30,6 +40,8 @@ export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState("");
   const [newOrderAlert, setNewOrderAlert] = useState<Order | null>(null);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [visitorCount, setVisitorCount] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
 
@@ -103,6 +115,9 @@ export default function Admin() {
             if (!old) return old;
             return old.map(o => o.id === data.order.id ? data.order : o);
           });
+        } else if (data.type === "visitors_update") {
+          setVisitors(data.visitors);
+          setVisitorCount(data.count);
         }
       } catch (e) {
         console.error("WebSocket message error:", e);
@@ -221,7 +236,20 @@ export default function Admin() {
 
       <div className="container py-6">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Vizitatori Live</p>
+                  <p className="text-3xl font-bold">{visitorCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -262,6 +290,59 @@ export default function Admin() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Live Visitors */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Vizitatori în Timp Real
+              <Badge variant="outline" className="ml-2 bg-purple-50 text-purple-700 border-purple-200">
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2 animate-pulse"></span>
+                {visitorCount} online
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {visitors.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <p className="text-muted-foreground">Nu sunt vizitatori activi în acest moment</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-3">
+                  {visitors.map((visitor) => (
+                    <motion.div
+                      key={visitor.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
+                    >
+                      <div className={`p-2 rounded-full ${visitor.device === "Mobil" ? "bg-pink-100" : "bg-blue-100"}`}>
+                        {visitor.device === "Mobil" ? (
+                          <Smartphone className="w-5 h-5 text-pink-600" />
+                        ) : (
+                          <Monitor className="w-5 h-5 text-blue-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{visitor.device}</span>
+                          <Badge variant="secondary" className="text-xs">{visitor.page}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{visitor.lastAction}</p>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        {new Date(visitor.lastActionTime).toLocaleTimeString("ro-RO")}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Orders List */}
         <Card>
