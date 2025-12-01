@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Star, TrendingUp, ShieldCheck } from "lucide-react";
+import { ArrowRight, Star, TrendingUp, ShieldCheck, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
 import { products } from "@/lib/products";
-import heroBg from "@assets/generated_images/luxury_perfume_store_hero_banner_with_elegant_bottles_and_gold_accents.png";
-import womenBg from "@assets/generated_images/elegant_women's_perfume_bottle_with_floral_notes.png";
-import menBg from "@assets/generated_images/bold_men's_perfume_bottle_dark_glass.png";
-import unisexBg from "@assets/generated_images/unisex_minimalist_perfume_bottle.png";
+import heroBg from "@assets/generated_images/pastel_pink_hero_banner_with_perfume_bottles_on_podiums.png";
+import womenBg from "@assets/generated_images/women's_perfume_category_card_with_pink_aesthetic.png";
+import menBg from "@assets/generated_images/men's_perfume_category_card_with_bold_blue/black_aesthetic.png";
+import unisexBg from "@assets/generated_images/unisex_perfume_category_card_with_teal/turquoise_aesthetic.png";
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState("");
+  
   // Featured logic: Pick random popular ones
   const featuredProducts = products.slice(0, 8); 
   const bestSellers = products.slice(10, 14);
+
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-20 pb-20">
@@ -24,23 +31,24 @@ export default function Home() {
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105 animate-in fade-in duration-1000"
           style={{ backgroundImage: `url(${heroBg})` }}
         >
-          <div className="absolute inset-0 bg-black/40" /> {/* Dark Overlay */}
+          {/* Removed dark overlay for the brighter pink aesthetic */}
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-transparent mix-blend-multiply" />
         </div>
 
         <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-white space-y-6 max-w-2xl">
+          <div className="text-white space-y-6 max-w-2xl drop-shadow-lg">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight mb-4">
-                Esențe Rare, <br />
-                <span className="text-primary italic">Lux Accesibil.</span>
+              <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight mb-4 text-shadow-lg">
+                Parfumatica <br />
+                <span className="text-white italic">Reduceri Speciale</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/80 max-w-lg leading-relaxed">
-                Descoperă colecția noastră exclusivă de parfumuri de designer. 
-                Arome care definesc personalitatea.
+              <p className="text-lg md:text-xl text-white font-medium max-w-lg leading-relaxed text-shadow">
+                Alege parfumurile tale preferate și bucură-te de reduceri speciale.
+                Grăbește-te, oferta este limitată!
               </p>
             </motion.div>
             
@@ -50,46 +58,89 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="flex flex-wrap gap-4"
             >
-              <Button size="xl" className="text-lg h-14 px-8 bg-primary text-primary-foreground hover:bg-primary/90 border-none" asChild>
-                <Link href="/category/women">Cumpără Acum</Link>
-              </Button>
-              <Button size="xl" variant="outline" className="text-lg h-14 px-8 bg-transparent text-white border-white hover:bg-white hover:text-black transition-colors" asChild>
-                <Link href="/category/men">Vezi Colecția</Link>
-              </Button>
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Caută parfumul tău preferat..." 
+                  className="pl-10 h-14 bg-white/90 text-black border-none shadow-lg text-lg rounded-full focus-visible:ring-primary"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl p-2 z-50 max-h-[300px] overflow-y-auto">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.slice(0, 5).map(product => (
+                        <Link key={product.id} href={`/category/${product.category}`}>
+                          <div className="flex items-center gap-3 p-2 hover:bg-secondary rounded-md cursor-pointer">
+                            <img src={product.image} alt={product.name} className="h-10 w-10 object-contain" />
+                            <div>
+                              <p className="text-sm font-medium text-black">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">{product.price} Lei</p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground p-2">Niciun rezultat găsit.</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
 
-          {/* Hero Category Cards */}
+          {/* Hero Category Cards - Redesigned to pop out more */}
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="hidden lg:grid grid-cols-2 gap-4"
+            className="hidden lg:grid grid-cols-2 gap-6"
           >
-            <Link href="/category/women" className="group relative h-64 rounded-lg overflow-hidden cursor-pointer">
+            {/* Women Card - Big */}
+            <Link href="/category/women" className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer shadow-2xl hover:shadow-pink-500/20 transition-all duration-500 border-4 border-white bg-white">
               <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${womenBg})` }} />
-              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center">
-                <h3 className="font-serif text-2xl font-bold mb-2">DAMĂ</h3>
-                <span className="bg-destructive text-white text-xs font-bold px-2 py-1 rounded">-25% REDUCERE</span>
+              
+              {/* Floating Badge */}
+              <div className="absolute top-4 right-4 bg-red-600 text-white h-16 w-16 rounded-full flex items-center justify-center flex-col shadow-lg animate-bounce-slow">
+                <span className="text-[10px] font-bold uppercase">Până la</span>
+                <span className="text-lg font-black leading-none">-30%</span>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/90 to-transparent p-6 pt-12 text-center">
+                <h3 className="font-serif text-3xl font-bold text-pink-900 mb-1">Dama</h3>
+                <span className="inline-block bg-pink-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md group-hover:bg-pink-700 transition-colors">
+                  Cumpără Acum
+                </span>
               </div>
             </Link>
             
-            <div className="space-y-4">
-              <Link href="/category/men" className="group relative h-30 block rounded-lg overflow-hidden cursor-pointer">
+            <div className="space-y-6">
+              {/* Men Card */}
+              <Link href="/category/men" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-blue-900/20 transition-all duration-500 border-4 border-white bg-white">
                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${menBg})` }} />
-                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
-                <div className="absolute inset-0 flex items-center justify-between px-6 text-white">
-                  <h3 className="font-serif text-xl font-bold">BĂRBAȚI</h3>
-                  <span className="bg-destructive text-white text-[10px] font-bold px-2 py-1 rounded">-25%</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-between px-6">
+                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+                    <h3 className="font-serif text-xl font-bold text-slate-900">BĂRBAȚI</h3>
+                    <p className="text-xs font-bold text-red-600">MEGA REDUCERI</p>
+                  </div>
                 </div>
               </Link>
-              <Link href="/category/unisex" className="group relative h-30 block rounded-lg overflow-hidden cursor-pointer">
+
+              {/* Unisex Card */}
+              <Link href="/category/unisex" className="group relative h-36 block rounded-2xl overflow-hidden cursor-pointer shadow-xl hover:shadow-teal-500/20 transition-all duration-500 border-4 border-white bg-white">
                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${unisexBg})` }} />
-                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
-                <div className="absolute inset-0 flex items-center justify-between px-6 text-white">
-                  <h3 className="font-serif text-xl font-bold">UNISEX</h3>
-                  <span className="bg-destructive text-white text-[10px] font-bold px-2 py-1 rounded">-25%</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-900/10 to-transparent" />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg rotate-12">
+                    -25%
+                  </div>
+                </div>
+                <div className="absolute inset-0 flex items-center px-6">
+                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+                    <h3 className="font-serif text-xl font-bold text-teal-900">UNISEX</h3>
+                    <p className="text-xs font-bold text-teal-700">Parfumuri</p>
+                  </div>
                 </div>
               </Link>
             </div>
