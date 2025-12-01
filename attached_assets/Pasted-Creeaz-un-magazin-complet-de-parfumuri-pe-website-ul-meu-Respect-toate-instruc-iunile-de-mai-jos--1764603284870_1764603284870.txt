@@ -1,0 +1,366 @@
+Creează un magazin complet de parfumuri pe website-ul meu.
+Respectă toate instrucțiunile de mai jos fără excepție.
+
+🔥 1. STRUCTURĂ SITE
+
+Adaugă în HEADER următoarele categorii:
+
+Parfumuri damă
+
+Parfumuri bărbați
+
+Parfumuri unisex
+
+Fiecare categorie trebuie să aibă propria pagină.
+Pe Home afișează secțiuni „Produse recomandate”, „Cele mai vândute” și „Reduceri”.
+
+🔥 2. CARD PRODUSE (template folosit pentru toate)
+
+Fiecare parfum trebuie introdus cu:
+
+Nume EXACT
+
+Preț de vânzare EXACT
+
+Preț obișnuit EXACT (afișat tăiat)
+
+Imagine PNG reală, fără background (Lovable să caute automat imaginea oficială PNG a parfumului)
+
+Buton “Adaugă în coș”
+
+Badge “Reducere”
+
+Tag-uri pentru SEO: brand, tip parfum, volum, gender
+
+Cardul trebuie să fie modern, cu poză mare, text lizibil și stil curat.
+
+🔥 3. LISTA COMPLETĂ DE PRODUSE
+👉 Introdu toate produsele EXACT cum sunt mai jos, la categoria corectă.
+🌸 PARFUMURI DAMĂ
+
+Jean Paul Gaultier Scandal Women – 179 lei (370 lei)
+Jean Paul Gaultier Gaultier Divine – 215 lei (400 lei)
+Tom Ford Private Blend Vanilla Sex – 189 lei (400 lei)
+Jean Paul Gaultier La Belle Le Parfum – 215 lei (400 lei)
+Prada Paradoxe – 179 lei (400 lei)
+Givenchy L’Interdit Rouge – 189 lei (370 lei)
+Mugler Alien – 179 lei (350 lei)
+Jean Paul Gaultier La Belle Paradise Garden – 215 lei (400 lei)
+Dior J’adore – 179 lei (420 lei)
+Xerjoff Erba Pura – 229 lei (980 lei)
+Xerjoff Accento – 229 lei (450 lei)
+Versace Crystal Noir – 179 lei (330 lei)
+Lancôme Trésor La Nuit – 189 lei (400 lei)
+Chanel Chance – 189 lei (765 lei)
+Sospiro Erba Pura – 199 lei (500 lei)
+Jean Paul Gaultier Scandal Women Absolu – 189 lei (400 lei)
+Baccarat Rouge 540 – 229 lei (380 lei)
+Tom Ford Noir Extreme – 199 lei (400 lei)
+Tom Ford Black Orchid – 189 lei (350 lei)
+Dior Hypnotic Poison – 179 lei (340 lei)
+Carolina Herrera Good Girl – 179 lei (659 lei)
+Armani Sì Intense – 179 lei (350 lei)
+Tom Ford Rose Prick – 179 lei (400 lei)
+Tom Ford Vanille Fatale – 179 lei (400 lei)
+Xerjoff Opera – 229 lei (500 lei)
+Tom Ford Lost Cherry – 189 lei (400 lei)
+Paco Rabanne Lady Million – 169 lei (330 lei)
+Lancôme La Vie Est Belle – 179 lei (370 lei)
+Dior Addict – 179 lei (310 lei)
+Calvin Klein Euphoria – 159 lei (300 lei)
+Givenchy L’Interdit – 179 lei (370 lei)
+Kilian Angel’s Share – 229 lei (500 lei)
+YSL Libre – 179 lei (400 lei)
+Chloé Nomade – 179 lei (350 lei)
+Amouage Interlude Women – 229 lei (500 lei)
+Tom Ford Bitter Peach – 199 lei (390 lei)
+YSL Libre Le Parfum – 189 lei (350 lei)
+Giardini di Toscana Bianco Latte – 179 lei (340 lei)
+Tom Ford Cherry Smoke – 199 lei (400 lei)
+Tom Ford Tuscan Leather – 189 lei (400 lei)
+Lancôme Poême – 189 lei (400 lei)
+Chanel Coco Noir – 179 lei (390 lei)
+Carolina Herrera Very Good Girl – 189 lei (370 lei)
+BVLGARI Jasmin Noir – 189 lei (380 lei)
+Hermes Eau Des Merveilles – 199 lei (500 lei)
+Tom Ford Mandarino di Amalfi – 199 lei (400 lei)
+Tom Ford Oud Wood – 199 lei (400 lei)
+Xerjoff Erba Gold – 229 lei (500 lei)
+Armani Code Femme – 169 lei (300 lei)
+Armani My Way – 169 lei (300 lei)
+YSL Black Opium – 179 lei (300 lei)
+Lancôme La Vie Est Belle L’Elixir – 199 lei (380 lei)
+Chloé EDP – 179 lei (310 lei)
+Hugo Boss The Scent For Her – 169 lei (350 lei)
+Gisada Ambassador Women – 189 lei (400 lei)
+Parfums de Marly Delina – 199 lei (400 lei)
+Tom Ford Soleil Brûlant – 199 lei (350 lei)
+Tom Ford Costa Azzura – 199 lei (400 lei)
+Sospiro Accento – 229 lei (500 lei)
+Xerjoff Laylati – 229 lei (500 lei)
+Versace Bright Crystal – 169 lei (300 lei)
+Paco Rabanne Fame Intense – 179 lei (400 lei)
+Lancôme Idôle L’Intense – 169 lei (350 lei)
+Gucci Bloom – 169 lei (300 lei)
+Dior J'adore Parfum d’Eau – 169 lei (350 lei)
+Chanel Coco Mademoiselle – 189 lei (380 lei)
+Carolina Herrera Good Girl Blush – 189 lei (350 lei)
+Tom Ford Neroli Portofino – 199 lei (390 lei)
+Tom Ford Velvet Orchid – 199 lei (380 lei)
+Tom Ford Noir – 189 lei (400 lei)
+Hugo Boss The Scent Elixir – 179 lei (330 lei)
+YSL Libre L’Absolu Platine – 189 lei (400 lei)
+Givenchy L’Interdit Intense – 179 lei (350 lei)
+YSL Black Opium Extreme – 189 lei (370 lei)
+YSL Mon Paris – 179 lei (380 lei)
+Sospiro Laylati – 199 lei (400 lei)
+Armani Because It’s You – 179 lei (390 lei)
+Sospiro Erba Gold – 229 lei (990 lei)
+YSL Black Opium Le Parfum – 189 lei (350 lei)
+Paco Rabanne Fame Blooming Pink – 189 lei (380 lei)
+Lancôme La Vie Est Belle Intense – 189 lei (350 lei)
+Kayali Vanilla Candy Rock Sugar 42 – 189 lei (330 lei)
+Kayali Vanilla 28 – 189 lei (350 lei)
+Guerlain La Petite Robe Noire – 179 lei (380 lei)
+Dior Miss Dior Chérie – 189 lei (450 lei)
+Chanel N°5 – 189 lei (400 lei)
+Chanel Coco Mademoiselle L’Eau Privée – 189 lei (310 lei)
+Carolina Herrera Good Girl Gold Fantasy – 189 lei (340 lei)
+Carolina Herrera 212 VIP Rosé – 169 lei (300 lei)
+Burberry My Burberry – 179 lei (350 lei)
+Burberry My Burberry Blush – 179 lei (340 lei)
+Burberry Goddess – 179 lei (350 lei)
+Armani Sì – 169 lei (350 lei)
+Armani Sì Passione – 179 lei (350 lei)
+Armani My Way Intense – 199 lei (400 lei)
+Armani Code Absolu – 199 lei (380 lei)
+Montale Intense Cafe – 199 lei (380 lei)
+Marc Jacobs Decadence – 229 lei (500 lei)
+Carolina Herrera Good Girl Dazzling Garden – 189 lei (360 lei)
+Tiziana Terenzi Kirke – 199 lei (390 lei)
+YSL Supreme Bouquet – 189 lei (380 lei)
+Paco Rabanne Olympéa Parfum – 189 lei (350 lei)
+Tom Ford Café Rose – 199 lei (400 lei)
+Prada Candy Florale – 169 lei (330 lei)
+Elie Saab Le Parfum – 169 lei (340 lei)
+Tom Ford Noir de Noir – 189 lei (400 lei)
+Tom Ford Orchid Soleil – 189 lei (400 lei)
+Paco Rabanne Fame – 169 lei (350 lei)
+Dolce&Gabbana The One – 159 lei (300 lei)
+Dolce&Gabbana Devotion – 169 lei (350 lei)
+YSL Manifesto – 179 lei (763 lei)
+Narciso Rodriguez For Her – 169 lei (250 lei)
+Hermès Twilly – 159 lei (300 lei)
+Guerlain Mon Guerlain – 179 lei (350 lei)
+Gucci Guilty Femme – 179 lei (320 lei)
+Chloé Love Story – 169 lei (380 lei)
+Carolina Herrera Good Girl Velvet Fatale – 189 lei (380 lei)
+Carolina Herrera Good Girl Fantastic Pink – 189 lei (400 lei)
+Burberry Hero – 159 lei (379 lei)
+
+👑 PARFUMURI BĂRBAȚI
+
+Jean Paul Gaultier Le Male Elixir – 229 lei (400 lei)
+Armani Stronger With You Intensely – 179 lei (370 lei)
+Armani Stronger With You Absolutely – 179 lei (380 lei)
+Jean Paul Gaultier Le Male Le Parfum – 215 lei (400 lei)
+Dior Sauvage – 179 lei (370 lei)
+Jean Paul Gaultier Scandal Pour Homme Le Parfum – 189 lei (380 lei)
+Jean Paul Gaultier Scandal Pour Homme – 179 lei (350 lei)
+Armani Stronger With You Parfum – 179 lei (350 lei)
+Tom Ford Private Blend Vanilla Sex – 189 lei (400 lei)
+Jean Paul Gaultier Scandal Pour Homme Absolu – 189 lei (390 lei)
+Dior Sauvage Elixir – 189 lei (400 lei)
+Louis Vuitton Ombre Nomade – 229 lei (450 lei)
+Dior Homme Intense – 189 lei (370 lei)
+Versace Eros – 169 lei (300 lei)
+YSL MYSLF – 179 lei (330 lei)
+Tom Ford Ombre Leather – 189 lei (500 lei)
+Dior Fahrenheit – 169 lei (300 lei)
+Armani Acqua di Giò Profumo – 179 lei (370 lei)
+Xerjoff Erba Pura – 229 lei (980 lei)
+Xerjoff Accento – 229 lei (450 lei)
+Versace Eros Flame – 179 lei (320 lei)
+Boss The Scent – 159 lei (300 lei)
+Sospiro Erba Pura – 199 lei (500 lei)
+BVLGARI Man In Black – 169 lei (350 lei)
+Armani Acqua di Giò EDT – 159 lei (290 lei)
+Armani Stronger With You Oud – 189 lei (380 lei)
+Armani Code – 169 lei (300 lei)
+Tom Ford Noir Extreme – 199 lei (400 lei)
+Tom Ford Black Orchid – 189 lei (350 lei)
+Armani Stronger With You Leather – 189 lei (390 lei)
+Versace Eros Energy – 179 lei (350 lei)
+Tom Ford Rose Prick – 179 lei (400 lei)
+Tom Ford Vanille Fatale – 179 lei (400 lei)
+Xerjoff Opera – 229 lei (500 lei)
+Hermès Terre d’Hermès – 189 lei (300 lei)
+Tom Ford Lost Cherry – 189 lei (400 lei)
+Creed Aventus – 189 lei (400 lei)
+Paco Rabanne Invictus Legend – 179 lei (350 lei)
+Prada Luna Rossa Black – 179 lei (340 lei)
+YSL Y Man – 179 lei (330 lei)
+Dolce&Gabbana K – 189 lei (340 lei)
+Hugo Boss The Scent Elixir for Him – 179 lei (310 lei)
+Tom Ford Bitter Peach – 199 lei (390 lei)
+Tom Ford Cherry Smoke – 199 lei (400 lei)
+Tom Ford Tuscan Leather – 189 lei (400 lei)
+Jean Paul Gaultier Ultra Male – 199 lei (400 lei)
+Jean Paul Gaultier Le Male – 199 lei (350 lei)
+Armani Stronger With You Amber – 199 lei (410 lei)
+BVLGARI Aqva Pour Homme – 169 lei (380 lei)
+Tom Ford Mandarino di Amalfi – 199 lei (400 lei)
+Tom Ford Oud Wood – 199 lei (400 lei)
+Carolina Herrera Bad Boy – 179 lei (330 lei)
+Xerjoff Erba Gold – 229 lei (500 lei)
+Chanel Allure Homme Sport – 179 lei (450 lei)
+Paco Rabanne 1 Million Royal – 179 lei (330 lei)
+Givenchy Gentleman Society Extrême – 189 lei (380 lei)
+Givenchy Gentleman – 179 lei (350 lei)
+Armani Stronger With You EDT – 169 lei (330 lei)
+Valentino Uomo – 169 lei (380 lei)
+BVLGARI Man Wood Essence – 169 lei (350 lei)
+YSL La Nuit de L’Homme – 179 lei (350 lei)
+Prada Luna Rossa Carbon – 179 lei (350 lei)
+Tom Ford Soleil Brûlant – 199 lei (350 lei)
+Tom Ford Costa Azzura – 199 lei (400 lei)
+Carolina Herrera 212 Heroes – 179 lei (310 lei)
+Sospiro Accento – 229 lei (500 lei)
+Xerjoff Laylati – 229 lei (500 lei)
+Paco Rabanne Invictus Victory – 179 lei (350 lei)
+Paco Rabanne 1 Million Privé – 189 lei (320 lei)
+Kilian Back To Black – 229 lei (500 lei)
+Hugo Boss Bottled – 159 lei (300 lei)
+Armani Acqua di Giò Absolu – 179 lei (390 lei)
+Azzaro Wanted – 169 lei (391 lei)
+Layton Parfums de Marly – 199 lei (380 lei)
+Tom Ford Neroli Portofino – 199 lei (390 lei)
+Tom Ford Velvet Orchid – 199 lei (380 lei)
+Tom Ford Noir – 189 lei (400 lei)
+YSL La Nuit de L’Homme Le Parfum – 169 lei (370 lei)
+YSL Y Man EDT – 159 lei (300 lei)
+Sospiro Laylati – 199 lei (400 lei)
+Sospiro Erba Gold – 229 lei (990 lei)
+Viktor & Rolf Spicebomb – 169 lei (400 lei)
+Paco Rabanne Phantom – 169 lei (350 lei)
+Kilian Black Phantom – 229 lei (500 lei)
+Armani Acqua di Giò Profondo – 179 lei (310 lei)
+Montale Intense Cafe – 199 lei (380 lei)
+Tom Ford Café Rose – 199 lei (400 lei)
+Paco Rabanne Phantom Legion – 179 lei (330 lei)
+Tom Ford Noir de Noir – 189 lei (400 lei)
+Tom Ford Orchid Soleil – 189 lei (400 lei)
+Hugo Boss The Scent Le Parfum – 169 lei (350 lei)
+Givenchy Gentleman Intense – 189 lei (380 lei)
+Dolce&Gabbana Light Blue Pour Homme – 159 lei (300 lei)
+Burberry Hero – 159 lei (379 lei)
+
+⚪ PARFUMURI UNISEX
+
+Tom Ford Private Blend Vanilla Sex – 189 lei (400 lei)
+Xerjoff Erba Pura – 229 lei (980 lei)
+Xerjoff Accento – 229 lei (450 lei)
+Sospiro Erba Pura – 199 lei (500 lei)
+Tom Ford Noir Extreme – 199 lei (400 lei)
+Tom Ford Black Orchid – 189 lei (350 lei)
+Tom Ford Rose Prick – 179 lei (400 lei)
+Tom Ford Vanille Fatale – 179 lei (400 lei)
+Tom Ford Lost Cherry – 189 lei (400 lei)
+Xerjoff Opera – 229 lei (500 lei)
+Tom Ford Bitter Peach – 199 lei (390 lei)
+Tom Ford Cherry Smoke – 199 lei (400 lei)
+Tom Ford Tuscan Leather – 189 lei (400 lei)
+Tom Ford Mandarino di Amalfi – 199 lei (400 lei)
+Tom Ford Oud Wood – 199 lei (400 lei)
+Xerjoff Erba Gold – 229 lei (500 lei)
+Tom Ford Soleil Brûlant – 199 lei (350 lei)
+Tom Ford Costa Azzura – 199 lei (400 lei)
+Sospiro Accento – 229 lei (500 lei)
+Xerjoff Laylati – 229 lei (500 lei)
+Tom Ford Neroli Portofino – 199 lei (390 lei)
+Tom Ford Velvet Orchid – 199 lei (380 lei)
+Tom Ford Noir – 189 lei (400 lei)
+Sospiro Laylati – 199 lei (400 lei)
+Sospiro Erba Gold – 229 lei (990 lei)
+Montale Intense Cafe – 199 lei (380 lei)
+Tom Ford Café Rose – 199 lei (400 lei)
+Tom Ford Noir de Noir – 189 lei (400 lei)
+Tom Ford Orchid Soleil – 189 lei (400 lei)
+
+🔥 4. CE TREBUIE SĂ FACĂ LOVABLE
+
+Creează pagini individuale pentru fiecare produs
+
+Încarcă imagine PNG oficială (fără background) pentru fiecare
+
+Grupează produsele la categoria corectă
+
+Stil modern, responsive, carduri mari
+
+Afișează preț redus + preț obișnuit tăiat
+
+Activează funcționalitatea „Adaugă în coș”
+
+Generează descriere automată pentru fiecare parfum
+
+🔥 1. REGULĂ DE TRANSPORT
+
+Transportul costă 15 lei pentru comenzile sub 250 lei.
+
+Transportul este GRATUIT pentru comenzile de 250 lei sau mai mult.
+
+Prețul transportului trebuie calculat și afișat automat în coș și la checkout, în funcție de valoarea totală a produselor.
+
+🔥 2. FUNCȚIONALITATE COȘ – AVERTISMENT INTELIGENT
+
+În coș, adaugă următoarea logică:
+
+Dacă valoarea coșului este sub 250 lei, afișează un mesaj frumos și motivant:
+
+„✨ Mai adaugi {250 - totalCos} lei și primești transport GRATUIT! ✨”
+
+{250 - totalCos} trebuie calculat automat.
+
+Dacă totalul este 200 lei, mesajul trebuie să fie:
+
+„✨ Mai adaugi 50 lei și primești transport GRATUIT! ✨”
+
+Dacă valoarea coșului este peste 250 lei, afișează mesajul:
+
+„🎉 Felicitări! Comanda ta are transport GRATUIT!”
+
+Mesajele trebuie să fie evidențiate (culoare verde pentru gratuit, galben/orange pentru avertisment).
+
+🔥 3. AFIȘARE COST TRANSPORT ÎN COȘ
+
+Dacă totalul < 250 lei → adaugă Transport: 15 lei
+
+Dacă totalul ≥ 250 lei → adaugă Transport: GRATUIT
+
+Suma totală finală trebuie recalculată automat.
+
+🔥 4. MOVING ANNOUNCEMENT / MARQUEE PE HOMEPAGE
+
+Adaugă în partea de sus a Home Page un banner animat (moving announcement / slide text):
+
+„🚚 Transport GRATUIT la toate comenzile peste 250 lei 🎉”
+
+Cerințe:
+
+Să fie vizibil mereu în partea de sus
+
+Text animat (scrolling sau moving)
+
+Fundal ușor colorat (ex: negru sau roșu)
+
+Text alb + emoji
+
+🔥 5. FUNCȚIONALITATE REZUMATĂ
+
+Implementare completă a regulilor de transport.
+
+Calcul automat în coș.
+
+Avertisment pentru pragul de transport gratuit.
+
+Banner animat pe Home.
