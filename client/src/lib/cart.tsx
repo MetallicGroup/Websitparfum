@@ -21,7 +21,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const SHIPPING_THRESHOLD = 250;
-  const SHIPPING_COST = 15;
+  const SHIPPING_COST = 19.99;
 
   const addToCart = (product: Product) => {
     setItems(current => {
