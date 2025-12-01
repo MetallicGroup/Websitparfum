@@ -49,6 +49,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
         quantity: 1,
       });
     }
+
+    // Facebook Pixel - AddToCart Event
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'AddToCart', {
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: product.price,
+        currency: 'RON',
+      });
+    }
     
     toast({
       title: "Adăugat în coș",
