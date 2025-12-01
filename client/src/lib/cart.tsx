@@ -37,6 +37,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...current, { ...product, quantity: 1 }];
     });
+
+    // TikTok Pixel - AddToCart Event
+    if (typeof window !== 'undefined' && (window as any).ttq) {
+      (window as any).ttq.track('AddToCart', {
+        content_id: product.id,
+        content_name: product.name,
+        content_type: 'product',
+        price: product.price,
+        currency: 'RON',
+        quantity: 1,
+      });
+    }
     
     toast({
       title: "Adăugat în coș",
