@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { CheckCircle2, Truck } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "Prenumele este obligatoriu"),
@@ -40,20 +41,59 @@ export default function Checkout() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Mock order placement
-    console.log(values);
-    setIsSuccess(true);
-    clearCart();
-    
-    // Simulate SMS/WhatsApp notification logic (frontend only)
-    setTimeout(() => {
+  const createOrderMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerName: `${values.firstName} ${values.lastName}`,
+          phoneNumber: values.phone,
+          address: values.address,
+          city: values.city,
+          county: values.county,
+          postalCode: "",
+          products: items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          total,
+          shippingCost,
+          grandTotal,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create order");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsSuccess(true);
+      clearCart();
       toast({
         title: "Comandă confirmată! 🎉",
-        description: `Mulțumim ${values.firstName}! Vei primi un SMS de confirmare în curând.`,
+        description: `Mulțumim! Vei primi un mesaj WhatsApp de confirmare în curând.`,
         duration: 5000,
       });
-    }, 1000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Eroare la plasarea comenzii",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    createOrderMutation.mutate(values);
   }
 
   if (isSuccess) {
@@ -187,8 +227,14 @@ export default function Checkout() {
                   />
                 </div>
                 
-                <Button type="submit" size="lg" className="w-full mt-8 text-lg h-12">
-                  Plasează Comanda
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full mt-8 text-lg h-12"
+                  disabled={createOrderMutation.isPending}
+                  data-testid="button-submit-order"
+                >
+                  {createOrderMutation.isPending ? "Se procesează..." : "Plasează Comanda"}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground mt-4">
                   Prin plasarea comenzii ești de acord cu termenii și condițiile noastre.
