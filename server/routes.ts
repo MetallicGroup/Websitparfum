@@ -234,6 +234,9 @@ export async function registerRoutes(
         .map(p => `${p.quantity}x ${p.name} (${p.price} lei)`)
         .join(", ");
 
+      // Full address with city and county
+      const fullAddress = `${order.address}, ${order.city}, ${order.county}`;
+
       // Support multiple admin phone numbers (comma-separated)
       const adminPhones = process.env.ADMIN_PHONE_NUMBER?.split(',').map(p => p.trim()).filter(Boolean) || [];
       for (const adminPhone of adminPhones) {
@@ -243,7 +246,7 @@ export async function registerRoutes(
           [
             order.customerName,
             order.phoneNumber,
-            order.address,
+            fullAddress,
             productList
           ]
         );
