@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertOrderSchema, type Order } from "@shared/schema";
+import { insertOrderSchema, insertLeadSchema, type Order } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 
 const ADMIN_PASSWORD = "parfum";
@@ -286,6 +286,39 @@ export async function registerRoutes(
   app.post("/api/webhook", (req, res) => {
     console.log("Webhook received:", JSON.stringify(req.body, null, 2));
     res.sendStatus(200);
+  });
+
+  // Lead capture endpoints
+  app.post("/api/leads", async (req, res) => {
+    try {
+      const validation = insertLeadSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        const validationError = fromZodError(validation.error);
+        return res.status(400).json({ error: validationError.message });
+      }
+
+      const lead = await storage.createLead(validation.data);
+      res.status(201).json(lead);
+    } catch (error) {
+      console.error("Error creating lead:", error);
+      res.status(500).json({ error: "Failed to save lead" });
+    }
+  });
+
+  app.get("/api/leads", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const leads = await storage.getAllLeads();
+      res.json(leads);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      res.status(500).json({ error: "Failed to fetch leads" });
+    }
   });
 
   return httpServer;
