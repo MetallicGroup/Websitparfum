@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/lib/cart";
 import { Layout } from "@/components/layout";
 import { VisitorTracker } from "@/components/visitor-tracker";
+import { DiscountPopup } from "@/components/discount-popup";
 import Home from "@/pages/home";
 import Category from "@/pages/category";
 import Product from "@/pages/product";
@@ -36,6 +37,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <VisitorTracker />
+        <DiscountPopup />
         <Router />
         <Toaster />
       </CartProvider>
