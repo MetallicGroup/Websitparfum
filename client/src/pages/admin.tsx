@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell, Users, Monitor, Smartphone, Eye } from "lucide-react";
+import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell, Users, Monitor, Smartphone, Eye, UserPlus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Order } from "@shared/schema";
+import type { Order, Lead } from "@shared/schema";
 
 interface Visitor {
   id: string;
@@ -55,6 +55,23 @@ export default function Admin() {
       });
       if (!response.ok) {
         throw new Error("Failed to fetch orders");
+      }
+      return response.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
+  });
+
+  const { data: leads = [], refetch: refetchLeads } = useQuery<Lead[]>({
+    queryKey: ["admin-leads"],
+    queryFn: async () => {
+      const response = await fetch("/api/leads", {
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch leads");
       }
       return response.json();
     },
@@ -335,6 +352,78 @@ export default function Admin() {
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
                         {new Date(visitor.lastActionTime).toLocaleTimeString("ro-RO")}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Leads Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="w-5 h-5" />
+                Leads pentru Remarketing
+                <Badge variant="outline" className="ml-2 bg-pink-50 text-pink-700 border-pink-200">
+                  {leads.length} contacte
+                </Badge>
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const csv = "Nume,Telefon,Data\n" + leads.map(l => 
+                    `"${l.name}","${l.phoneNumber}","${new Date(l.createdAt).toLocaleString("ro-RO")}"`
+                  ).join("\n");
+                  const blob = new Blob([csv], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
+                  a.click();
+                }}
+                data-testid="button-export-leads"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {leads.length === 0 ? (
+              <div className="text-center py-8">
+                <UserPlus className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <p className="text-muted-foreground">Nu există leads încă</p>
+                <p className="text-sm text-muted-foreground mt-1">Vizitatorii care completează popup-ul vor apărea aici</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-2">
+                  {leads.map((lead) => (
+                    <motion.div
+                      key={lead.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
+                    >
+                      <div className="p-2 rounded-full bg-pink-100">
+                        <User className="w-5 h-5 text-pink-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{lead.name}</span>
+                        </div>
+                        <a href={`tel:${lead.phoneNumber}`} className="text-sm text-primary hover:underline flex items-center gap-1">
+                          <Phone className="w-3 h-3" />
+                          {lead.phoneNumber}
+                        </a>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        {new Date(lead.createdAt).toLocaleString("ro-RO")}
                       </div>
                     </motion.div>
                   ))}
