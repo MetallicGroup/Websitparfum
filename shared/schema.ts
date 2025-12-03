@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, jsonb, timestamp, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,9 +17,9 @@ export const orders = pgTable("orders", {
     price: number;
     quantity: number;
   }>>(),
-  total: integer("total").notNull(),
-  shippingCost: integer("shipping_cost").notNull(),
-  grandTotal: integer("grand_total").notNull(),
+  total: real("total").notNull(),
+  shippingCost: real("shipping_cost").notNull(),
+  grandTotal: real("grand_total").notNull(),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
