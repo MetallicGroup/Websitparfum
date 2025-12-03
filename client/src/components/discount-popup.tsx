@@ -10,7 +10,6 @@ export function DiscountPopup() {
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     const hasSeenPopup = localStorage.getItem(POPUP_STORAGE_KEY);
@@ -38,10 +37,7 @@ export function DiscountPopup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), phoneNumber: phoneNumber.trim() }),
       });
-      setSubmitted(true);
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
+      handleClose();
     } catch (error) {
       console.error("Failed to save lead:", error);
     } finally {
@@ -66,68 +62,54 @@ export function DiscountPopup() {
           <X className="w-6 h-6 sm:w-7 sm:h-7 text-gray-600" />
         </button>
 
-        {!submitted ? (
-          <>
-            <div className="text-center mb-6">
-              <div className="inline-block bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold px-4 py-1 rounded-full mb-4">
-                OFERTĂ EXCLUSIVĂ
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Primești 20% REDUCERE
-              </h2>
-              <p className="text-gray-600 text-sm sm:text-base">
-                Înscrie-te acum și beneficiază de o reducere specială la prima ta comandă!
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Numele tău"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full h-12 text-base border-gray-300 focus:border-pink-500 focus:ring-pink-500"
-                  data-testid="input-lead-name"
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="tel"
-                  placeholder="Număr de telefon"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full h-12 text-base border-gray-300 focus:border-pink-500 focus:ring-pink-500"
-                  data-testid="input-lead-phone"
-                  required
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold text-base rounded-lg transition-all duration-200"
-                data-testid="button-submit-lead"
-              >
-                {isSubmitting ? "Se trimite..." : "VREAU REDUCEREA"}
-              </Button>
-            </form>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Datele tale sunt în siguranță și nu vor fi partajate cu terți.
-            </p>
-          </>
-        ) : (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Mulțumim!</h3>
-            <p className="text-gray-600">Te vom contacta în curând cu oferta ta specială.</p>
+        <div className="text-center mb-6">
+          <div className="inline-block bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold px-4 py-1 rounded-full mb-4">
+            OFERTĂ EXCLUSIVĂ
           </div>
-        )}
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Primești 20% REDUCERE
+          </h2>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Înscrie-te acum și beneficiază de o reducere specială la prima ta comandă!
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Input
+              type="text"
+              placeholder="Numele tău"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full h-12 text-base border-gray-300 focus:border-pink-500 focus:ring-pink-500"
+              data-testid="input-lead-name"
+              required
+            />
+          </div>
+          <div>
+            <Input
+              type="tel"
+              placeholder="Număr de telefon"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full h-12 text-base border-gray-300 focus:border-pink-500 focus:ring-pink-500"
+              data-testid="input-lead-phone"
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold text-base rounded-lg transition-all duration-200"
+            data-testid="button-submit-lead"
+          >
+            {isSubmitting ? "Se trimite..." : "VREAU REDUCEREA"}
+          </Button>
+        </form>
+
+        <p className="text-xs text-gray-500 text-center mt-4">
+          Datele tale sunt în siguranță și nu vor fi partajate cu terți.
+        </p>
       </div>
     </div>
   );
