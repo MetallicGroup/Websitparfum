@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell, Users, Monitor, Smartphone, Eye, UserPlus, Download } from "lucide-react";
+import { Lock, Package, User, Phone, MapPin, Clock, CheckCircle, Truck, XCircle, RefreshCw, Bell, Users, Monitor, Smartphone, Eye, UserPlus, Download, Send, MessageCircle, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -94,6 +94,39 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (leadId: string) => {
+      const response = await fetch(`/api/leads/${leadId}/send-message`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to send message");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+    },
+  });
+
+  const sendAllMessagesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/leads/send-all", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to send messages");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+      alert(`Trimise ${data.sent} mesaje, ${data.failed} eșuate din ${data.total} total.`);
     },
   });
 
@@ -364,7 +397,7 @@ export default function Admin() {
         {/* Leads Section */}
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <CardTitle className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
                 Leads pentru Remarketing
@@ -372,25 +405,42 @@ export default function Admin() {
                   {leads.length} contacte
                 </Badge>
               </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const csv = "Nume,Telefon,Data\n" + leads.map(l => 
-                    `"${l.name}","${l.phoneNumber}","${new Date(l.createdAt).toLocaleString("ro-RO")}"`
-                  ).join("\n");
-                  const blob = new Blob([csv], { type: "text/csv" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
-                  a.click();
-                }}
-                data-testid="button-export-leads"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => sendAllMessagesMutation.mutate()}
+                  disabled={sendAllMessagesMutation.isPending || leads.filter(l => !l.messageSentAt).length === 0}
+                  data-testid="button-send-all"
+                >
+                  {sendAllMessagesMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Trimite la Toți ({leads.filter(l => !l.messageSentAt).length})
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const csv = "Nume,Telefon,Data,Status Mesaj,Citit,Click Link\n" + leads.map(l => 
+                      `"${l.name}","${l.phoneNumber}","${new Date(l.createdAt).toLocaleString("ro-RO")}","${l.messageStatus || 'netrimis'}","${l.messageStatus === 'read' ? 'Da' : 'Nu'}","${l.linkClicked ? 'Da' : 'Nu'}"`
+                    ).join("\n");
+                    const blob = new Blob([csv], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `leads_${new Date().toISOString().split("T")[0]}.csv`;
+                    a.click();
+                  }}
+                  data-testid="button-export-leads"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -401,7 +451,7 @@ export default function Admin() {
                 <p className="text-sm text-muted-foreground mt-1">Vizitatorii care completează popup-ul vor apărea aici</p>
               </div>
             ) : (
-              <ScrollArea className="h-[300px]">
+              <ScrollArea className="h-[400px]">
                 <div className="space-y-2">
                   {leads.map((lead) => (
                     <motion.div
@@ -414,16 +464,74 @@ export default function Admin() {
                         <User className="w-5 h-5 text-pink-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">{lead.name}</span>
+                          {lead.messageSentAt && (
+                            <Badge 
+                              variant="outline" 
+                              className={
+                                lead.linkClicked 
+                                  ? "bg-purple-50 text-purple-700 border-purple-200" 
+                                  : lead.messageStatus === "read" 
+                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                    : lead.messageStatus === "delivered"
+                                      ? "bg-green-50 text-green-700 border-green-200"
+                                      : "bg-gray-50 text-gray-700 border-gray-200"
+                              }
+                            >
+                              {lead.linkClicked ? (
+                                <>
+                                  <ExternalLink className="w-3 h-3 mr-1" />
+                                  Click pe Link
+                                </>
+                              ) : lead.messageStatus === "read" ? (
+                                <>
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Citit
+                                </>
+                              ) : lead.messageStatus === "delivered" ? (
+                                <>
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Livrat
+                                </>
+                              ) : (
+                                <>
+                                  <MessageCircle className="w-3 h-3 mr-1" />
+                                  Trimis
+                                </>
+                              )}
+                            </Badge>
+                          )}
                         </div>
                         <a href={`tel:${lead.phoneNumber}`} className="text-sm text-primary hover:underline flex items-center gap-1">
                           <Phone className="w-3 h-3" />
                           {lead.phoneNumber}
                         </a>
                       </div>
-                      <div className="text-right text-xs text-muted-foreground">
-                        {new Date(lead.createdAt).toLocaleString("ro-RO")}
+                      <div className="flex items-center gap-2">
+                        {!lead.messageSentAt ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-600 border-green-300 hover:bg-green-50"
+                            onClick={() => sendMessageMutation.mutate(lead.id)}
+                            disabled={sendMessageMutation.isPending}
+                            data-testid={`button-send-message-${lead.id}`}
+                          >
+                            {sendMessageMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-1" />
+                                Trimite
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(lead.messageSentAt).toLocaleString("ro-RO")}
+                          </span>
+                        )}
                       </div>
                     </motion.div>
                   ))}
