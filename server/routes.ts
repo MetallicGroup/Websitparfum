@@ -330,8 +330,47 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/webhook", (req, res) => {
+  app.post("/api/webhook", async (req, res) => {
     console.log("Webhook received:", JSON.stringify(req.body, null, 2));
+    
+    try {
+      const entry = req.body?.entry?.[0];
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+      
+      if (value?.statuses) {
+        for (const status of value.statuses) {
+          const messageId = status.id;
+          const statusValue = status.status;
+          
+          console.log(`Message ${messageId} status: ${statusValue}`);
+          
+          if (statusValue === "delivered") {
+            await storage.updateLeadMessageStatus(messageId, "delivered");
+          } else if (statusValue === "read") {
+            await storage.updateLeadMessageStatus(messageId, "read");
+          }
+        }
+      }
+      
+      if (value?.messages) {
+        for (const message of value.messages) {
+          if (message.type === "button" && message.button?.payload) {
+            const from = message.from;
+            console.log(`Button clicked by ${from}: ${message.button.payload}`);
+            
+            const leads = await storage.getAllLeads();
+            const lead = leads.find(l => l.phoneNumber === from || l.phoneNumber === `+${from}`);
+            if (lead && lead.messageId) {
+              await storage.updateLeadLinkClicked(lead.messageId);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+    }
+    
     res.sendStatus(200);
   });
 
