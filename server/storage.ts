@@ -16,6 +16,10 @@ export interface IStorage {
   updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
   createLead(lead: InsertLead): Promise<Lead>;
   getAllLeads(): Promise<Lead[]>;
+  updateLeadMessage(id: string, messageId: string): Promise<Lead | undefined>;
+  updateLeadMessageStatus(messageId: string, status: string): Promise<Lead | undefined>;
+  updateLeadLinkClicked(messageId: string): Promise<Lead | undefined>;
+  getLeadByPhone(phoneNumber: string): Promise<Lead | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -49,6 +53,38 @@ export class DatabaseStorage implements IStorage {
 
   async getAllLeads(): Promise<Lead[]> {
     return db.select().from(leads).orderBy(desc(leads.createdAt));
+  }
+
+  async updateLeadMessage(id: string, messageId: string): Promise<Lead | undefined> {
+    const [lead] = await db
+      .update(leads)
+      .set({ messageId, messageSentAt: new Date(), messageStatus: "sent" })
+      .where(eq(leads.id, id))
+      .returning();
+    return lead;
+  }
+
+  async updateLeadMessageStatus(messageId: string, status: string): Promise<Lead | undefined> {
+    const [lead] = await db
+      .update(leads)
+      .set({ messageStatus: status })
+      .where(eq(leads.messageId, messageId))
+      .returning();
+    return lead;
+  }
+
+  async updateLeadLinkClicked(messageId: string): Promise<Lead | undefined> {
+    const [lead] = await db
+      .update(leads)
+      .set({ linkClicked: new Date() })
+      .where(eq(leads.messageId, messageId))
+      .returning();
+    return lead;
+  }
+
+  async getLeadByPhone(phoneNumber: string): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.phoneNumber, phoneNumber));
+    return lead;
   }
 }
 

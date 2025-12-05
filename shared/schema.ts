@@ -7,11 +7,19 @@ export const leads = pgTable("leads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   phoneNumber: text("phone_number").notNull(),
+  messageId: text("message_id"),
+  messageSentAt: timestamp("message_sent_at"),
+  messageStatus: text("message_status").default("pending"),
+  linkClicked: timestamp("link_clicked"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertLeadSchema = createInsertSchema(leads).omit({
   id: true,
+  messageId: true,
+  messageSentAt: true,
+  messageStatus: true,
+  linkClicked: true,
   createdAt: true,
 });
 
