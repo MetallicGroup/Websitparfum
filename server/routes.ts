@@ -322,12 +322,22 @@ export async function registerRoutes(
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
+    console.log("Webhook GET request received:", { mode, token, challenge: challenge ? "present" : "missing" });
+
     if (mode === "subscribe" && token === "parfum") {
       console.log("Webhook verified successfully");
       res.status(200).send(challenge);
     } else {
       res.status(403).send("Verification failed");
     }
+  });
+
+  app.get("/api/webhook-test", (req, res) => {
+    res.json({ 
+      status: "OK", 
+      message: "Webhook endpoint is reachable",
+      timestamp: new Date().toISOString()
+    });
   });
 
   app.post("/api/webhook", async (req, res) => {
