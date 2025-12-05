@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCart } from "@/lib/cart";
 
 const POPUP_STORAGE_KEY = "luxe_parfum_popup_shown";
 
@@ -11,7 +10,6 @@ export function DiscountPopup() {
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { applyDiscount } = useCart();
 
   useEffect(() => {
     const hasSeenPopup = localStorage.getItem(POPUP_STORAGE_KEY);
@@ -39,7 +37,6 @@ export function DiscountPopup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), phoneNumber: phoneNumber.trim() }),
       });
-      applyDiscount();
       handleClose();
     } catch (error) {
       console.error("Failed to save lead:", error);
@@ -70,10 +67,10 @@ export function DiscountPopup() {
             OFERTĂ EXCLUSIVĂ
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Primești 5% REDUCERE
+            Profitați de ofertele noastre cu discount
           </h2>
           <p className="text-gray-600 text-sm sm:text-base">
-            Înscrie-te acum și beneficiază de o reducere specială la prima ta comandă!
+            Înscrie-te acum pentru a primi notificări despre cele mai bune oferte!
           </p>
         </div>
 
@@ -106,7 +103,7 @@ export function DiscountPopup() {
             className="w-full h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold text-base rounded-lg transition-all duration-200"
             data-testid="button-submit-lead"
           >
-            {isSubmitting ? "Se trimite..." : "VREAU REDUCEREA"}
+            {isSubmitting ? "Se trimite..." : "VREAU OFERTELE"}
           </Button>
         </form>
 
