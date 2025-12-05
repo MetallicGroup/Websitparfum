@@ -90,6 +90,53 @@ async function sendWhatsAppMessage(to: string, templateName: string, parameters:
   }
 }
 
+async function sendBazaTemplate(to: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!accessToken || !phoneNumberId) {
+    return { success: false, error: "WhatsApp credentials not configured" };
+  }
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: to,
+          type: "template",
+          template: {
+            name: "baza",
+            language: {
+              code: "ro"
+            }
+          }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`WhatsApp API error for baza template: ${response.status}`, errorData);
+      return { success: false, error: errorData };
+    }
+
+    const data = await response.json();
+    console.log("Baza template sent:", data);
+    const messageId = data.messages?.[0]?.id;
+    return { success: true, messageId };
+  } catch (error) {
+    console.error("Error sending baza template:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -318,6 +365,66 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching leads:", error);
       res.status(500).json({ error: "Failed to fetch leads" });
+    }
+  });
+
+  app.post("/api/leads/:id/send-message", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const leads = await storage.getAllLeads();
+      const lead = leads.find(l => l.id === req.params.id);
+      
+      if (!lead) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+
+      const result = await sendBazaTemplate(lead.phoneNumber);
+      
+      if (result.success && result.messageId) {
+        await storage.updateLeadMessage(lead.id, result.messageId);
+        const updatedLead = await storage.getAllLeads().then(leads => leads.find(l => l.id === lead.id));
+        res.json({ success: true, lead: updatedLead });
+      } else {
+        res.status(500).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending message to lead:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  app.post("/api/leads/send-all", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const leads = await storage.getAllLeads();
+      const unsentLeads = leads.filter(l => !l.messageSentAt);
+      
+      let sent = 0;
+      let failed = 0;
+
+      for (const lead of unsentLeads) {
+        const result = await sendBazaTemplate(lead.phoneNumber);
+        if (result.success && result.messageId) {
+          await storage.updateLeadMessage(lead.id, result.messageId);
+          sent++;
+        } else {
+          failed++;
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      res.json({ success: true, sent, failed, total: unsentLeads.length });
+    } catch (error) {
+      console.error("Error sending messages to all leads:", error);
+      res.status(500).json({ error: "Failed to send messages" });
     }
   });
 
