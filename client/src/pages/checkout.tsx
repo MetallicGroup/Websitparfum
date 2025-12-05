@@ -24,7 +24,7 @@ const formSchema = z.object({
 });
 
 export default function Checkout() {
-  const { items, total, discountedTotal, discountAmount, hasDiscount, shippingCost, grandTotal, clearCart } = useCart();
+  const { items, total, shippingCost, grandTotal, clearCart } = useCart();
   const { toast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
   const [, setLocation] = useLocation();
@@ -93,7 +93,7 @@ export default function Checkout() {
             price: item.price,
             quantity: item.quantity,
           })),
-          total: discountedTotal,
+          total,
           shippingCost,
           grandTotal,
         }),
@@ -335,27 +335,19 @@ export default function Checkout() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal produse</span>
-                <span>{total.toFixed(2)} Lei</span>
+                <span>{total} Lei</span>
               </div>
-              {hasDiscount && (
-                <div className="flex justify-between items-center text-green-600">
-                  <span className="flex items-center gap-2">
-                    🎉 Reducere 5%
-                  </span>
-                  <span className="font-bold">-{discountAmount.toFixed(2)} Lei</span>
-                </div>
-              )}
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center gap-2">
                   <Truck className="h-4 w-4" /> Cost Livrare
                 </span>
                 <span className={shippingCost === 0 ? "text-green-600 font-bold" : ""}>
-                  {shippingCost === 0 ? "GRATUIT" : `${shippingCost.toFixed(2)} Lei`}
+                  {shippingCost === 0 ? "GRATUIT" : `${shippingCost} Lei`}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-4 border-t font-serif font-bold text-xl">
                 <span>Total de plată</span>
-                <span>{grandTotal.toFixed(2)} Lei</span>
+                <span>{grandTotal} Lei</span>
               </div>
               <div className="bg-white border rounded-md p-3 mt-4 text-center text-sm font-medium">
                 💳 Plată Ramburs la Curier (Cash)
