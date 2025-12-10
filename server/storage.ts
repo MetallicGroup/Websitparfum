@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { neonConfig, Pool } from "@neondatabase/serverless";
 import ws from "ws";
-import { orders, leads, type Order, type InsertOrder, type Lead, type InsertLead } from "@shared/schema";
+import { orders, leads, conversationStates, type Order, type InsertOrder, type Lead, type InsertLead, type ConversationState } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 neonConfig.webSocketConstructor = ws;
@@ -20,6 +20,9 @@ export interface IStorage {
   updateLeadMessageStatus(messageId: string, status: string): Promise<Lead | undefined>;
   updateLeadLinkClicked(messageId: string): Promise<Lead | undefined>;
   getLeadByPhone(phoneNumber: string): Promise<Lead | undefined>;
+  getConversation(phoneNumber: string): Promise<ConversationState | undefined>;
+  upsertConversation(phoneNumber: string, data: Partial<Omit<ConversationState, 'id' | 'createdAt'>>): Promise<ConversationState>;
+  deleteConversation(phoneNumber: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -85,6 +88,33 @@ export class DatabaseStorage implements IStorage {
   async getLeadByPhone(phoneNumber: string): Promise<Lead | undefined> {
     const [lead] = await db.select().from(leads).where(eq(leads.phoneNumber, phoneNumber));
     return lead;
+  }
+
+  async getConversation(phoneNumber: string): Promise<ConversationState | undefined> {
+    const [conversation] = await db.select().from(conversationStates).where(eq(conversationStates.phoneNumber, phoneNumber));
+    return conversation;
+  }
+
+  async upsertConversation(phoneNumber: string, data: Partial<Omit<ConversationState, 'id' | 'createdAt'>>): Promise<ConversationState> {
+    const existing = await this.getConversation(phoneNumber);
+    if (existing) {
+      const [updated] = await db
+        .update(conversationStates)
+        .set({ ...data, lastUpdated: new Date() })
+        .where(eq(conversationStates.phoneNumber, phoneNumber))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(conversationStates)
+        .values({ phoneNumber, ...data, lastUpdated: new Date() })
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteConversation(phoneNumber: string): Promise<void> {
+    await db.delete(conversationStates).where(eq(conversationStates.phoneNumber, phoneNumber));
   }
 }
 

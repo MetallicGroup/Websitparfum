@@ -55,3 +55,22 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
+
+export const conversationStates = pgTable("conversation_states", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phoneNumber: text("phone_number").notNull().unique(),
+  customerName: text("customer_name"),
+  state: text("state").notNull().default("idle"),
+  cart: jsonb("cart").$type<Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>>().default([]),
+  deliveryAddress: text("delivery_address"),
+  lastMessage: text("last_message"),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type ConversationState = typeof conversationStates.$inferSelect;
