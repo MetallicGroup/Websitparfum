@@ -67,6 +67,12 @@ export const conversationStates = pgTable("conversation_states", {
     price: number;
     quantity: number;
   }>>().default([]),
+  searchResults: jsonb("search_results").$type<Array<{
+    id: string;
+    name: string;
+    price: number;
+    oldPrice: number;
+  }>>().default([]),
   deliveryAddress: text("delivery_address"),
   lastMessage: text("last_message"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
