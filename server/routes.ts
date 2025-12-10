@@ -188,7 +188,7 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
   let conversation = await storage.getConversation(from);
   
   if (buttonPayload === "VEZI_PARFUMURILE" || buttonPayload?.includes("PARFUM")) {
-    await storage.upsertConversation(from, { state: "awaiting_search", cart: [] });
+    await storage.upsertConversation(from, { state: "awaiting_search", cart: [], searchResults: [] });
     await sendTextMessage(from, 
       "🌸 Bine ai venit la Luxe Parfum!\n\n" +
       "Ce parfum cauți? Poți să-mi scrii:\n" +
@@ -200,7 +200,7 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
   }
 
   if (!conversation) {
-    conversation = await storage.upsertConversation(from, { state: "awaiting_search", cart: [] });
+    conversation = await storage.upsertConversation(from, { state: "awaiting_search", cart: [], searchResults: [] });
   }
 
   const state = conversation.state;
@@ -208,51 +208,50 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
 
   switch (state) {
     case "awaiting_search":
-    case "idle":
+    case "idle": {
+      let results: Product[] = [];
+      let header = "";
+      
       if (text === "dama" || text === "femei" || text === "women") {
-        const results = getProductsByCategory("women");
-        await sendProductResults(from, results, "Parfumuri damă populare:");
-        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+        results = getProductsByCategory("women");
+        header = "Parfumuri damă populare:";
       } else if (text === "barbati" || text === "barbat" || text === "men") {
-        const results = getProductsByCategory("men");
-        await sendProductResults(from, results, "Parfumuri bărbați populare:");
-        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+        results = getProductsByCategory("men");
+        header = "Parfumuri bărbați populare:";
       } else if (text === "unisex") {
-        const results = getProductsByCategory("unisex");
-        await sendProductResults(from, results, "Parfumuri unisex populare:");
-        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+        results = getProductsByCategory("unisex");
+        header = "Parfumuri unisex populare:";
       } else {
-        const results = searchProducts(messageText);
+        results = searchProducts(messageText);
         if (results.length > 0) {
-          await sendProductResults(from, results, `Am găsit ${results.length} rezultate pentru "${messageText}":`);
-          await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
-        } else {
-          await sendTextMessage(from, 
-            `😔 Din păcate, nu am găsit "${messageText}" în stoc.\n\n` +
-            "Am notat cererea ta și te vom contacta dacă devine disponibil!\n\n" +
-            "Între timp, poți căuta alt parfum sau scrie 'dama', 'barbati' sau 'unisex' pentru a vedea opțiunile disponibile."
-          );
-          await notifyAdminMissingProduct(from, messageText);
+          header = `Am găsit ${results.length} rezultate pentru "${messageText}":`;
         }
       }
+      
+      if (results.length > 0) {
+        const searchResultsToStore = results.map(p => ({ id: p.id, name: p.name, price: p.price, oldPrice: p.oldPrice }));
+        await storage.upsertConversation(from, { state: "awaiting_selection", searchResults: searchResultsToStore });
+        await sendProductResults(from, results, header);
+      } else {
+        await sendTextMessage(from, 
+          `😔 Din păcate, nu am găsit "${messageText}" în stoc.\n\n` +
+          "Am notat cererea ta și te vom contacta dacă devine disponibil!\n\n" +
+          "Între timp, poți căuta alt parfum sau scrie 'dama', 'barbati' sau 'unisex' pentru a vedea opțiunile disponibile."
+        );
+        await notifyAdminMissingProduct(from, messageText);
+      }
       break;
+    }
 
-    case "awaiting_selection":
+    case "awaiting_selection": {
       const productNum = parseInt(text);
-      if (!isNaN(productNum) && productNum >= 1 && productNum <= 10) {
-        const results = conversation.lastMessage?.includes("dama") ? getProductsByCategory("women") :
-                        conversation.lastMessage?.includes("barbat") ? getProductsByCategory("men") :
-                        conversation.lastMessage?.includes("unisex") ? getProductsByCategory("unisex") :
-                        searchProducts(conversation.lastMessage || "");
-        
-        const selectedProduct = results[productNum - 1];
+      const storedResults = conversation.searchResults || [];
+      
+      if (!isNaN(productNum) && productNum >= 1 && productNum <= storedResults.length) {
+        const selectedProduct = storedResults[productNum - 1];
         if (selectedProduct) {
           const cart = [{ id: selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, quantity: 1 }];
-          await storage.upsertConversation(from, { 
-            state: "awaiting_quantity", 
-            cart,
-            lastMessage: selectedProduct.id 
-          });
+          await storage.upsertConversation(from, { state: "awaiting_quantity", cart, searchResults: [] });
           await sendTextMessage(from, 
             `✨ Ai ales: ${selectedProduct.name}\n` +
             `💰 Preț: ${selectedProduct.price} lei\n\n` +
@@ -261,13 +260,14 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
           return;
         }
       }
-      await sendTextMessage(from, "Te rog să scrii un număr de la 1 la 10 pentru a selecta parfumul dorit.");
+      await sendTextMessage(from, `Te rog să scrii un număr de la 1 la ${storedResults.length} pentru a selecta parfumul dorit.`);
       break;
+    }
 
-    case "awaiting_quantity":
+    case "awaiting_quantity": {
       const quantity = parseInt(text);
       if (!isNaN(quantity) && quantity >= 1 && quantity <= 5) {
-        const cart = conversation.cart || [];
+        const cart = [...(conversation.cart || [])];
         if (cart.length > 0) {
           cart[0].quantity = quantity;
           const total = cart[0].price * quantity;
@@ -287,10 +287,11 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
         await sendTextMessage(from, "Te rog să scrii un număr de la 1 la 5.");
       }
       break;
+    }
 
-    case "awaiting_name":
+    case "awaiting_name": {
       if (messageText.length >= 3) {
-        await storage.upsertConversation(from, { state: "awaiting_address", customerName: messageText });
+        const updatedConv = await storage.upsertConversation(from, { state: "awaiting_address", customerName: messageText });
         await sendTextMessage(from, 
           `Mulțumesc, ${messageText}! 😊\n\n` +
           "Acum te rog să-mi trimiți adresa de livrare completă:\n" +
@@ -300,18 +301,20 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
         await sendTextMessage(from, "Te rog să scrii numele tău complet.");
       }
       break;
+    }
 
-    case "awaiting_address":
+    case "awaiting_address": {
       if (messageText.length >= 10) {
-        await storage.upsertConversation(from, { state: "awaiting_confirmation", deliveryAddress: messageText });
+        const updatedConv = await storage.upsertConversation(from, { state: "awaiting_confirmation", deliveryAddress: messageText });
         
-        const cart = conversation.cart || [];
+        const cart = updatedConv.cart || [];
+        const customerName = updatedConv.customerName || "";
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
         
         await sendTextMessage(from, 
           `📋 *REZUMAT COMANDĂ*\n\n` +
-          `👤 Nume: ${conversation.customerName}\n` +
+          `👤 Nume: ${customerName}\n` +
           `📱 Telefon: +${from}\n` +
           `📍 Adresă: ${messageText}\n\n` +
           `📦 Produse:\n` +
@@ -325,22 +328,29 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
         await sendTextMessage(from, "Te rog să scrii adresa completă de livrare.");
       }
       break;
+    }
 
-    case "awaiting_confirmation":
+    case "awaiting_confirmation": {
       if (text === "da" || text === "confirm" || text === "ok") {
-        const cart = conversation.cart || [];
+        const freshConv = await storage.getConversation(from);
+        if (!freshConv) {
+          await sendTextMessage(from, "A apărut o eroare. Te rog să începi din nou.");
+          return;
+        }
+        
+        const cart = freshConv.cart || [];
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
         
-        const addressParts = (conversation.deliveryAddress || "").split(',').map(p => p.trim());
+        const addressParts = (freshConv.deliveryAddress || "").split(',').map(p => p.trim());
         const city = addressParts.length > 1 ? addressParts[addressParts.length - 2] : "Necunoscut";
         const county = addressParts.length > 0 ? addressParts[addressParts.length - 1] : "Necunoscut";
         
         try {
           const order = await storage.createOrder({
-            customerName: conversation.customerName || "Client WhatsApp",
+            customerName: freshConv.customerName || "Client WhatsApp",
             phoneNumber: `+${from}`,
-            address: conversation.deliveryAddress || "",
+            address: freshConv.deliveryAddress || "",
             city: city,
             county: county,
             products: cart,
@@ -376,9 +386,10 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
         await sendTextMessage(from, "Te rog să scrii *DA* pentru a confirma sau *NU* pentru a anula comanda.");
       }
       break;
+    }
 
     default:
-      await storage.upsertConversation(from, { state: "awaiting_search" });
+      await storage.upsertConversation(from, { state: "awaiting_search", searchResults: [] });
       await sendTextMessage(from, 
         "👋 Salut! Cu ce te pot ajuta?\n\n" +
         "Scrie numele parfumului căutat sau scrie 'dama', 'barbati' sau 'unisex' pentru a vedea opțiunile."
