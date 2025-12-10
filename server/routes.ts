@@ -2,10 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertOrderSchema, insertLeadSchema, type Order } from "@shared/schema";
+import { insertOrderSchema, insertLeadSchema, type Order, type ConversationState } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { searchProducts, getProductById, getProductsByCategory, type Product } from "./products";
 
 const ADMIN_PASSWORD = "parfum";
+const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
+const SHIPPING_COST = 19.99;
+const FREE_SHIPPING_THRESHOLD = 250;
 
 let adminWss: WebSocketServer;
 let visitorWss: WebSocketServer;
@@ -134,6 +138,287 @@ async function sendBazaTemplate(to: string): Promise<{ success: boolean; message
   } catch (error) {
     console.error("Error sending baza template:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+async function sendTextMessage(to: string, text: string): Promise<boolean> {
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!accessToken || !phoneNumberId) {
+    console.error("WhatsApp credentials not configured");
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: to,
+          type: "text",
+          text: { body: text }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`WhatsApp text message error: ${response.status}`, errorData);
+      return false;
+    }
+
+    console.log(`Text message sent to ${to}`);
+    return true;
+  } catch (error) {
+    console.error("Error sending text message:", error);
+    return false;
+  }
+}
+
+async function handleChatbotMessage(from: string, messageText: string, buttonPayload?: string): Promise<void> {
+  console.log(`Chatbot: Processing message from ${from}: "${messageText || buttonPayload}"`);
+  
+  let conversation = await storage.getConversation(from);
+  
+  if (buttonPayload === "VEZI_PARFUMURILE" || buttonPayload?.includes("PARFUM")) {
+    await storage.upsertConversation(from, { state: "awaiting_search", cart: [] });
+    await sendTextMessage(from, 
+      "🌸 Bine ai venit la Luxe Parfum!\n\n" +
+      "Ce parfum cauți? Poți să-mi scrii:\n" +
+      "• Numele parfumului (ex: Dior Sauvage)\n" +
+      "• Tipul (scrie 'dama', 'barbati' sau 'unisex')\n\n" +
+      "✨ Toate parfumurile noastre sunt originale și la prețuri speciale!"
+    );
+    return;
+  }
+
+  if (!conversation) {
+    conversation = await storage.upsertConversation(from, { state: "awaiting_search", cart: [] });
+  }
+
+  const state = conversation.state;
+  const text = messageText.toLowerCase().trim();
+
+  switch (state) {
+    case "awaiting_search":
+    case "idle":
+      if (text === "dama" || text === "femei" || text === "women") {
+        const results = getProductsByCategory("women");
+        await sendProductResults(from, results, "Parfumuri damă populare:");
+        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+      } else if (text === "barbati" || text === "barbat" || text === "men") {
+        const results = getProductsByCategory("men");
+        await sendProductResults(from, results, "Parfumuri bărbați populare:");
+        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+      } else if (text === "unisex") {
+        const results = getProductsByCategory("unisex");
+        await sendProductResults(from, results, "Parfumuri unisex populare:");
+        await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+      } else {
+        const results = searchProducts(messageText);
+        if (results.length > 0) {
+          await sendProductResults(from, results, `Am găsit ${results.length} rezultate pentru "${messageText}":`);
+          await storage.upsertConversation(from, { state: "awaiting_selection", lastMessage: text });
+        } else {
+          await sendTextMessage(from, 
+            `😔 Din păcate, nu am găsit "${messageText}" în stoc.\n\n` +
+            "Am notat cererea ta și te vom contacta dacă devine disponibil!\n\n" +
+            "Între timp, poți căuta alt parfum sau scrie 'dama', 'barbati' sau 'unisex' pentru a vedea opțiunile disponibile."
+          );
+          await notifyAdminMissingProduct(from, messageText);
+        }
+      }
+      break;
+
+    case "awaiting_selection":
+      const productNum = parseInt(text);
+      if (!isNaN(productNum) && productNum >= 1 && productNum <= 10) {
+        const results = conversation.lastMessage?.includes("dama") ? getProductsByCategory("women") :
+                        conversation.lastMessage?.includes("barbat") ? getProductsByCategory("men") :
+                        conversation.lastMessage?.includes("unisex") ? getProductsByCategory("unisex") :
+                        searchProducts(conversation.lastMessage || "");
+        
+        const selectedProduct = results[productNum - 1];
+        if (selectedProduct) {
+          const cart = [{ id: selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, quantity: 1 }];
+          await storage.upsertConversation(from, { 
+            state: "awaiting_quantity", 
+            cart,
+            lastMessage: selectedProduct.id 
+          });
+          await sendTextMessage(from, 
+            `✨ Ai ales: ${selectedProduct.name}\n` +
+            `💰 Preț: ${selectedProduct.price} lei\n\n` +
+            "Câte bucăți dorești? (scrie un număr de la 1 la 5)"
+          );
+          return;
+        }
+      }
+      await sendTextMessage(from, "Te rog să scrii un număr de la 1 la 10 pentru a selecta parfumul dorit.");
+      break;
+
+    case "awaiting_quantity":
+      const quantity = parseInt(text);
+      if (!isNaN(quantity) && quantity >= 1 && quantity <= 5) {
+        const cart = conversation.cart || [];
+        if (cart.length > 0) {
+          cart[0].quantity = quantity;
+          const total = cart[0].price * quantity;
+          const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+          
+          await storage.upsertConversation(from, { state: "awaiting_name", cart });
+          await sendTextMessage(from, 
+            `📦 Comanda ta:\n` +
+            `${quantity}x ${cart[0].name} = ${total} lei\n` +
+            `🚚 Livrare: ${shipping === 0 ? "GRATUITĂ" : `${shipping} lei`}\n` +
+            `💳 Total: ${total + shipping} lei\n\n` +
+            "Plata se face la livrare (ramburs).\n\n" +
+            "Pentru a finaliza comanda, te rog să-mi spui numele tău complet:"
+          );
+        }
+      } else {
+        await sendTextMessage(from, "Te rog să scrii un număr de la 1 la 5.");
+      }
+      break;
+
+    case "awaiting_name":
+      if (messageText.length >= 3) {
+        await storage.upsertConversation(from, { state: "awaiting_address", customerName: messageText });
+        await sendTextMessage(from, 
+          `Mulțumesc, ${messageText}! 😊\n\n` +
+          "Acum te rog să-mi trimiți adresa de livrare completă:\n" +
+          "(Strada, număr, bloc/scară/apartament, oraș, județ)"
+        );
+      } else {
+        await sendTextMessage(from, "Te rog să scrii numele tău complet.");
+      }
+      break;
+
+    case "awaiting_address":
+      if (messageText.length >= 10) {
+        await storage.upsertConversation(from, { state: "awaiting_confirmation", deliveryAddress: messageText });
+        
+        const cart = conversation.cart || [];
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+        
+        await sendTextMessage(from, 
+          `📋 *REZUMAT COMANDĂ*\n\n` +
+          `👤 Nume: ${conversation.customerName}\n` +
+          `📱 Telefon: +${from}\n` +
+          `📍 Adresă: ${messageText}\n\n` +
+          `📦 Produse:\n` +
+          cart.map(item => `• ${item.quantity}x ${item.name} - ${item.price * item.quantity} lei`).join('\n') +
+          `\n\n🚚 Livrare: ${shipping === 0 ? "GRATUITĂ" : `${shipping} lei`}\n` +
+          `💰 *TOTAL: ${total + shipping} lei*\n\n` +
+          `💳 Plata: Ramburs la livrare\n\n` +
+          `Scrie *DA* pentru a confirma comanda sau *NU* pentru a anula.`
+        );
+      } else {
+        await sendTextMessage(from, "Te rog să scrii adresa completă de livrare.");
+      }
+      break;
+
+    case "awaiting_confirmation":
+      if (text === "da" || text === "confirm" || text === "ok") {
+        const cart = conversation.cart || [];
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+        
+        const addressParts = (conversation.deliveryAddress || "").split(',').map(p => p.trim());
+        const city = addressParts.length > 1 ? addressParts[addressParts.length - 2] : "Necunoscut";
+        const county = addressParts.length > 0 ? addressParts[addressParts.length - 1] : "Necunoscut";
+        
+        try {
+          const order = await storage.createOrder({
+            customerName: conversation.customerName || "Client WhatsApp",
+            phoneNumber: `+${from}`,
+            address: conversation.deliveryAddress || "",
+            city: city,
+            county: county,
+            products: cart,
+            total: total,
+            shippingCost: shipping,
+            grandTotal: total + shipping
+          });
+
+          broadcastOrder(order);
+
+          await sendTextMessage(from, 
+            `🎉 *COMANDĂ CONFIRMATĂ!*\n\n` +
+            `Număr comandă: #${order.id.slice(0, 8)}\n\n` +
+            `Îți mulțumim că ai ales Luxe Parfum! ✨\n\n` +
+            `Vei fi contactat în curând pentru confirmarea livrării.\n\n` +
+            `Pentru orice întrebare, ne poți scrie aici.`
+          );
+
+          await notifyAdminNewOrder(order, from);
+          await storage.deleteConversation(from);
+          
+        } catch (error) {
+          console.error("Error creating order from chatbot:", error);
+          await sendTextMessage(from, "A apărut o eroare. Te rog să încerci din nou sau să ne contactezi direct.");
+        }
+      } else if (text === "nu" || text === "anuleaza" || text === "anulare") {
+        await storage.deleteConversation(from);
+        await sendTextMessage(from, 
+          "Comanda a fost anulată.\n\n" +
+          "Dacă vrei să cauți alt parfum, scrie-mi oricând! 🌸"
+        );
+      } else {
+        await sendTextMessage(from, "Te rog să scrii *DA* pentru a confirma sau *NU* pentru a anula comanda.");
+      }
+      break;
+
+    default:
+      await storage.upsertConversation(from, { state: "awaiting_search" });
+      await sendTextMessage(from, 
+        "👋 Salut! Cu ce te pot ajuta?\n\n" +
+        "Scrie numele parfumului căutat sau scrie 'dama', 'barbati' sau 'unisex' pentru a vedea opțiunile."
+      );
+  }
+}
+
+async function sendProductResults(to: string, products: Product[], header: string): Promise<void> {
+  let message = `${header}\n\n`;
+  products.forEach((product, index) => {
+    message += `${index + 1}. ${product.name}\n   💰 ${product.price} lei (era ${product.oldPrice} lei)\n\n`;
+  });
+  message += "Scrie numărul parfumului dorit (ex: 1, 2, 3...)";
+  await sendTextMessage(to, message);
+}
+
+async function notifyAdminMissingProduct(customerPhone: string, productQuery: string): Promise<void> {
+  if (ADMIN_PHONE) {
+    await sendTextMessage(ADMIN_PHONE, 
+      `⚠️ PRODUS NEGĂSIT\n\n` +
+      `Client: +${customerPhone}\n` +
+      `Căutare: "${productQuery}"\n\n` +
+      `Clientul caută un produs care nu este în catalog.`
+    );
+  }
+}
+
+async function notifyAdminNewOrder(order: Order, customerPhone: string): Promise<void> {
+  if (ADMIN_PHONE) {
+    const productList = order.products.map(p => `${p.quantity}x ${p.name}`).join(', ');
+    await sendTextMessage(ADMIN_PHONE, 
+      `🛒 COMANDĂ NOUĂ (WhatsApp)\n\n` +
+      `#${order.id.slice(0, 8)}\n` +
+      `👤 ${order.customerName}\n` +
+      `📱 ${order.phoneNumber}\n` +
+      `📍 ${order.address}\n` +
+      `📦 ${productList}\n` +
+      `💰 ${order.grandTotal} lei\n\n` +
+      `Comandă plasată prin chatbot WhatsApp.`
+    );
   }
 }
 
@@ -365,8 +650,9 @@ export async function registerRoutes(
       
       if (value?.messages) {
         for (const message of value.messages) {
+          const from = message.from;
+          
           if (message.type === "button" && message.button?.payload) {
-            const from = message.from;
             console.log(`Button clicked by ${from}: ${message.button.payload}`);
             
             const leads = await storage.getAllLeads();
@@ -374,6 +660,14 @@ export async function registerRoutes(
             if (lead && lead.messageId) {
               await storage.updateLeadLinkClicked(lead.messageId);
             }
+            
+            await handleChatbotMessage(from, "", message.button.payload);
+          } else if (message.type === "text" && message.text?.body) {
+            console.log(`Text message from ${from}: ${message.text.body}`);
+            await handleChatbotMessage(from, message.text.body);
+          } else if (message.type === "interactive" && message.interactive?.button_reply?.id) {
+            console.log(`Interactive button from ${from}: ${message.interactive.button_reply.id}`);
+            await handleChatbotMessage(from, "", message.interactive.button_reply.id);
           }
         }
       }
