@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
+import { SocialProofPopup } from "@/components/social-proof-popup";
 import { products } from "@/lib/products";
-import heroBg from "@assets/generated_images/pastel_pink_hero_banner_with_perfume_bottles_on_podiums.png";
+import heroBg from "@assets/generated_images/luxury_perfume_bottles_pink_podium.png";
 
 // Collage image paths (from public folder)
 const women1 = "/products/Parfumatica_Main_Photos/Jean Paul Gaultier Scandal Women Absolu, Eau de Parfum, 80 ml.jpg";
@@ -58,6 +59,8 @@ export default function Home() {
 
   return (
     <div className="space-y-12 md:space-y-20 pb-20">
+      <SocialProofPopup />
+      
       {/* HERO SECTION - Mobile Optimized */}
       <section className="relative min-h-[60vh] md:min-h-[80vh] flex items-center py-8 md:py-0" style={{ zIndex: 30 }}>
         <div 
