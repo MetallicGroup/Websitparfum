@@ -414,6 +414,8 @@ async function notifyAdminMissingProduct(customerPhone: string, productQuery: st
       `Căutare: "${productQuery}"\n\n` +
       `Clientul caută un produs care nu este în catalog.`
     );
+  } else {
+    console.warn("ADMIN_PHONE_NUMBER not configured - missing product notification not sent for:", productQuery);
   }
 }
 
@@ -430,6 +432,8 @@ async function notifyAdminNewOrder(order: Order, customerPhone: string): Promise
       `💰 ${order.grandTotal} lei\n\n` +
       `Comandă plasată prin chatbot WhatsApp.`
     );
+  } else {
+    console.warn("ADMIN_PHONE_NUMBER not configured - order notification not sent for order:", order.id);
   }
 }
 
