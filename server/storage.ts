@@ -28,6 +28,81 @@ if (!connectionString) {
 const pool = new Pool({ connectionString });
 const db = drizzle(pool);
 
+// Create tables if they don't exist
+async function ensureTablesExist() {
+  try {
+    console.log("=== ENSURING TABLES EXIST ===");
+    
+    // Create orders table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        customer_name TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        address TEXT NOT NULL,
+        city TEXT NOT NULL,
+        county TEXT NOT NULL,
+        postal_code TEXT,
+        products JSONB NOT NULL,
+        total REAL NOT NULL,
+        shipping_cost REAL NOT NULL,
+        grand_total REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
+    // Create leads table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS leads (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        message_id TEXT,
+        message_sent_at TIMESTAMP,
+        message_status TEXT DEFAULT 'pending',
+        link_clicked TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
+    // Create conversation_states table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS conversation_states (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        phone_number TEXT NOT NULL UNIQUE,
+        customer_name TEXT,
+        state TEXT NOT NULL DEFAULT 'idle',
+        cart JSONB DEFAULT '[]',
+        search_results JSONB DEFAULT '[]',
+        delivery_address TEXT,
+        last_message TEXT,
+        last_updated TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
+    console.log("All tables created/verified successfully");
+  } catch (error: any) {
+    // If tables already exist, that's fine
+    if (error.code === '42P07' || error.message?.includes('already exists')) {
+      console.log("Tables already exist, continuing...");
+    } else {
+      console.error("Error creating tables:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      // Don't throw - allow app to start even if table creation fails
+      // They might already exist
+    }
+  }
+}
+
+// Ensure tables exist on startup (only in production)
+if (process.env.NODE_ENV === "production") {
+  ensureTablesExist().catch(err => {
+    console.error("Failed to ensure tables exist:", err);
+  });
+}
+
 console.log("Database pool and drizzle instance created successfully");
 
 export interface IStorage {
