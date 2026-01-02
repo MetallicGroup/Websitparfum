@@ -6,7 +6,7 @@ import { insertOrderSchema, insertLeadSchema, type Order, type ConversationState
 import { fromZodError } from "zod-validation-error";
 import { searchProducts, getProductById, getProductsByCategory, type Product } from "./products";
 
-const ADMIN_PASSWORD = "parfum";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
 const SHIPPING_COST = 19.99;
 const FREE_SHIPPING_THRESHOLD = 250;
