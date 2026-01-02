@@ -6,8 +6,29 @@ import { eq, desc } from "drizzle-orm";
 
 neonConfig.webSocketConstructor = ws;
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Verify DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error("=== DATABASE CONNECTION ERROR ===");
+  console.error("DATABASE_URL environment variable is not set!");
+  console.error("Available env vars:", Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('DB')));
+  throw new Error("DATABASE_URL environment variable is required but not set");
+}
+
+console.log("=== DATABASE CONNECTION INIT ===");
+console.log("DATABASE_URL is set:", !!process.env.DATABASE_URL);
+console.log("DATABASE_URL length:", process.env.DATABASE_URL?.length || 0);
+console.log("DATABASE_URL starts with:", process.env.DATABASE_URL?.substring(0, 20) || "N/A");
+
+// Initialize pool with explicit connection string
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required but not provided");
+}
+
+const pool = new Pool({ connectionString });
 const db = drizzle(pool);
+
+console.log("Database pool and drizzle instance created successfully");
 
 export interface IStorage {
   createOrder(order: InsertOrder): Promise<Order>;
@@ -27,8 +48,22 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const [order] = await db.insert(orders).values(insertOrder).returning();
-    return order;
+    // Verify connection string is still available at runtime
+    if (!process.env.DATABASE_URL) {
+      console.error("=== RUNTIME DATABASE ERROR ===");
+      console.error("DATABASE_URL is missing at runtime!");
+      throw new Error("Database connection string is not available");
+    }
+    
+    try {
+      const [order] = await db.insert(orders).values(insertOrder).returning();
+      return order;
+    } catch (error) {
+      console.error("=== DATABASE INSERT ERROR ===");
+      console.error("Error inserting order:", error);
+      console.error("DATABASE_URL available:", !!process.env.DATABASE_URL);
+      throw error;
+    }
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
