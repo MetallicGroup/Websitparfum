@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Package,
   Phone,
   MapPin,
   Clock,
@@ -28,36 +27,31 @@ import {
 } from "@/components/ui/select";
 import type { Order } from "@shared/schema";
 
-const statusLabels: Record<string, string> = {
-  pending: "În așteptare",
-  processing: "În procesare",
-  shipped: "Expediată",
-  delivered: "Livrată",
-  cancelled: "Anulată",
-};
-
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
-  /* ================= LOGIN ================= */
+  /* ================= LOGIN (ADMIN) ================= */
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/orders", {
+    const res = await fetch("/api/admin/orders", {
       headers: {
         Authorization: `Bearer ${password}`,
       },
     });
 
-    if (res.ok) setIsAuthenticated(true);
-    else setError("Parolă incorectă");
+    if (res.ok) {
+      setIsAuthenticated(true);
+    } else {
+      setError("Parolă incorectă");
+    }
   };
 
-  /* ================= ORDERS ================= */
+  /* ================= ORDERS (REAL DATA) ================= */
   const {
     data: orders = [],
     isLoading,
@@ -76,7 +70,7 @@ export default function Admin() {
     },
   });
 
-  /* ================= STATUS UPDATE ================= */
+  /* ================= UPDATE STATUS ================= */
   const updateStatus = useMutation({
     mutationFn: async ({
       id,
