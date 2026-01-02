@@ -75,32 +75,49 @@ export default function Checkout() {
 
   const createOrderMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
+      // Ensure all numeric values are explicitly numbers
+      const orderData: {
+        customerName: string;
+        phoneNumber: string;
+        address: string;
+        city: string;
+        county: string;
+        postalCode?: string;
+        products: Array<{ id: string; name: string; price: number; quantity: number }>;
+        total: number;
+        shippingCost: number;
+        grandTotal: number;
+      } = {
+        customerName: `${values.firstName} ${values.lastName}`.trim(),
+        phoneNumber: values.phone.trim(),
+        address: values.address.trim(),
+        city: values.city.trim(),
+        county: values.county.trim(),
+        postalCode: "",
+        products: items.map((item) => ({
+          id: String(item.id),
+          name: String(item.name),
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+        })),
+        total: Number(total),
+        shippingCost: Number(shippingCost),
+        grandTotal: Number(grandTotal),
+      };
+
+      console.log("Sending order data:", orderData);
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          customerName: `${values.firstName} ${values.lastName}`,
-          phoneNumber: values.phone,
-          address: values.address,
-          city: values.city,
-          county: values.county,
-          postalCode: "",
-          products: items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-          })),
-          total,
-          shippingCost,
-          grandTotal,
-        }),
+        body: JSON.stringify(orderData),
       });
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("Order creation failed:", error);
         throw new Error(error.error || "Failed to create order");
       }
 
