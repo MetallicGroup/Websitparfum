@@ -47,10 +47,23 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  status: true,
-  createdAt: true,
+// Create explicit schema to ensure correct types
+export const insertOrderSchema = z.object({
+  customerName: z.string().min(1),
+  phoneNumber: z.string().min(1),
+  address: z.string().min(1),
+  city: z.string().min(1),
+  county: z.string().min(1),
+  postalCode: z.string().optional(),
+  products: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    price: z.number(),
+    quantity: z.number().int().positive(),
+  })).min(1),
+  total: z.number().nonnegative(),
+  shippingCost: z.number().nonnegative(),
+  grandTotal: z.number().nonnegative(),
 });
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;

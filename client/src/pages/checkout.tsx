@@ -93,7 +93,6 @@ export default function Checkout() {
         address: values.address.trim(),
         city: values.city.trim(),
         county: values.county.trim(),
-        postalCode: "",
         products: items.map((item) => ({
           id: String(item.id),
           name: String(item.name),
@@ -104,6 +103,11 @@ export default function Checkout() {
         shippingCost: Number(shippingCost),
         grandTotal: Number(grandTotal),
       };
+      
+      // Only include postalCode if it has a value
+      if (values.postalCode && values.postalCode.trim()) {
+        orderData.postalCode = values.postalCode.trim();
+      }
 
       console.log("Sending order data:", orderData);
 

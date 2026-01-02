@@ -565,20 +565,34 @@ export async function registerRoutes(
 
   app.post("/api/orders", async (req, res) => {
     try {
+      console.log("=== ORDER REQUEST RECEIVED ===");
       console.log("Received order request body:", JSON.stringify(req.body, null, 2));
+      console.log("Body type check - total:", typeof req.body.total, "value:", req.body.total);
+      console.log("Body type check - shippingCost:", typeof req.body.shippingCost, "value:", req.body.shippingCost);
+      console.log("Body type check - grandTotal:", typeof req.body.grandTotal, "value:", req.body.grandTotal);
+      console.log("Body type check - products:", Array.isArray(req.body.products), "length:", req.body.products?.length);
       
       const validation = insertOrderSchema.safeParse(req.body);
       
       if (!validation.success) {
-        console.error("Order validation failed:", JSON.stringify(validation.error.errors, null, 2));
+        console.error("=== ORDER VALIDATION FAILED ===");
+        console.error("Validation errors:", JSON.stringify(validation.error.errors, null, 2));
         console.error("Received body:", JSON.stringify(req.body, null, 2));
+        console.error("Error details:", validation.error);
         const validationError = fromZodError(validation.error);
-        return res.status(400).json({ error: validationError.message });
+        return res.status(400).json({ 
+          error: validationError.message,
+          details: validation.error.errors 
+        });
       }
 
-      console.log("Order validation successful, creating order...");
+      console.log("=== ORDER VALIDATION SUCCESSFUL ===");
+      console.log("Validated data:", JSON.stringify(validation.data, null, 2));
+      console.log("Creating order in database...");
+      
       const order = await storage.createOrder(validation.data);
-      console.log("Order created successfully:", order.id);
+      console.log("=== ORDER CREATED SUCCESSFULLY ===");
+      console.log("Order ID:", order.id);
 
       // Broadcast new order to admin clients
       broadcastOrder(order);
