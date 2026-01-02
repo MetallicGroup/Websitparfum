@@ -47,7 +47,7 @@ export default function Admin() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/admin/orders", {
+    const res = await fetch("/api/orders", {
       headers: {
         Authorization: `Bearer ${password}`,
       },
@@ -66,7 +66,7 @@ export default function Admin() {
     queryKey: ["admin-orders"],
     enabled: isAuthenticated,
     queryFn: async () => {
-      const res = await fetch("/api/admin/orders", {
+      const res = await fetch("/api/orders", {
         headers: {
           Authorization: `Bearer ${password}`,
         },
@@ -85,7 +85,7 @@ export default function Admin() {
       id: string;
       status: string;
     }) => {
-      const res = await fetch(`/api/admin/orders/${id}/status`, {
+      const res = await fetch(`/api/orders/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
