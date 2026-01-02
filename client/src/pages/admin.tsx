@@ -52,22 +52,6 @@ interface Visitor {
   device: string;
 }
 
-const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  processing: "bg-blue-100 text-blue-800 border-blue-300",
-  shipped: "bg-purple-100 text-purple-800 border-purple-300",
-  delivered: "bg-green-100 text-green-800 border-green-300",
-  cancelled: "bg-red-100 text-red-800 border-red-300",
-};
-
-const statusLabels: Record<string, string> = {
-  pending: "În așteptare",
-  processing: "În procesare",
-  shipped: "Expediată",
-  delivered: "Livrată",
-  cancelled: "Anulată",
-};
-
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -79,7 +63,29 @@ export default function Admin() {
   const wsRef = useRef<WebSocket | null>(null);
   const queryClient = useQueryClient();
 
-  // ---------------- ORDERS ----------------
+  /* ================= LOGIN ================= */
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+
+    try {
+      const res = await fetch("/api/admin/orders", {
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+      });
+
+      if (res.ok) {
+        setIsAuthenticated(true);
+      } else {
+        setAuthError("Parolă incorectă");
+      }
+    } catch {
+      setAuthError("Eroare de conexiune");
+    }
+  };
+
+  /* ================= ORDERS ================= */
   const {
     data: orders = [],
     isLoading,
@@ -88,7 +94,7 @@ export default function Admin() {
     queryKey: ["admin-orders"],
     enabled: isAuthenticated,
     queryFn: async () => {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/admin/orders", {
         headers: {
           Authorization: `Bearer ${password}`,
         },
@@ -99,12 +105,12 @@ export default function Admin() {
     refetchInterval: 30000,
   });
 
-  // ---------------- LEADS ----------------
-  const { data: leads = [], refetch: refetchLeads } = useQuery<Lead[]>({
+  /* ================= LEADS ================= */
+  const { data: leads = [] } = useQuery<Lead[]>({
     queryKey: ["admin-leads"],
     enabled: isAuthenticated,
     queryFn: async () => {
-      const res = await fetch("/api/leads", {
+      const res = await fetch("/api/admin/leads", {
         headers: {
           Authorization: `Bearer ${password}`,
         },
@@ -115,16 +121,10 @@ export default function Admin() {
     refetchInterval: 30000,
   });
 
-  // ---------------- MUTATIONS ----------------
+  /* ================= MUTATIONS ================= */
   const updateStatusMutation = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-    }: {
-      id: string;
-      status: string;
-    }) => {
-      const res = await fetch(`/api/orders/${id}/status`, {
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`/api/admin/orders/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export default function Admin() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (leadId: string) => {
-      const res = await fetch(`/api/leads/${leadId}/send-message`, {
+      const res = await fetch(`/api/admin/leads/${leadId}/send-message`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${password}`,
@@ -158,7 +158,7 @@ export default function Admin() {
 
   const sendAllMessagesMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/leads/send-all", {
+      const res = await fetch("/api/admin/leads/send-all", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${password}`,
@@ -167,22 +167,14 @@ export default function Admin() {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
-      alert(
-        `Trimise ${data.sent} mesaje, ${data.failed} eșuate din ${data.total}`
-      );
-    },
   });
 
-  // ---------------- WEBSOCKET ----------------
+  /* ================= WEBSOCKET ================= */
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(
-      `${protocol}//${window.location.host}/ws/admin`
-    );
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
     wsRef.current = ws;
 
     ws.onmessage = (e) => {
@@ -206,29 +198,7 @@ export default function Admin() {
     return () => ws.close();
   }, [isAuthenticated, queryClient]);
 
-  // ---------------- LOGIN ----------------
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError("");
-
-    try {
-      const res = await fetch("/api/orders", {
-        headers: {
-          Authorization: `Bearer ${password}`,
-        },
-      });
-
-      if (res.ok) {
-        setIsAuthenticated(true);
-      } else {
-        setAuthError("Parolă incorectă");
-      }
-    } catch {
-      setAuthError("Eroare de conexiune");
-    }
-  };
-
-  // ---------------- LOGIN UI ----------------
+  /* ================= LOGIN UI ================= */
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100">
@@ -258,61 +228,16 @@ export default function Admin() {
     );
   }
 
-  // ---------------- DASHBOARD ----------------
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
-  const totalRevenue = orders.reduce((s, o) => s + o.grandTotal, 0);
-
+  /* ================= DASHBOARD ================= */
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <AnimatePresence>
-        {newOrderAlert && (
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl z-50"
-          >
-            <Bell className="inline mr-2" />
-            Comandă nouă: {newOrderAlert.customerName}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="pt-6">
-            <p>Vizitatori live</p>
-            <p className="text-3xl font-bold">{visitorCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p>Total comenzi</p>
-            <p className="text-3xl font-bold">{totalOrders}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p>În așteptare</p>
-            <p className="text-3xl font-bold">{pendingOrders}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p>Venituri</p>
-            <p className="text-3xl font-bold">{totalRevenue} Lei</p>
-          </CardContent>
-        </Card>
-      </div>
 
       <Button onClick={() => refetch()} className="mb-4">
         <RefreshCw className="mr-2 h-4 w-4" /> Refresh
       </Button>
 
-      {/* Orders list – restul UI-ului tău rămâne identic */}
+      {/* restul UI-ului tău poate rămâne neschimbat */}
     </div>
   );
 }
