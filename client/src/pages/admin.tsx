@@ -78,14 +78,14 @@ export default function Admin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
-
+  
     try {
-      const response = await fetch("/api/orders", {
+      const response = await fetch("/api/admin/orders", {
         headers: {
           Authorization: `Bearer ${password}`,
         },
       });
-
+  
       if (response.ok) {
         setIsAuthenticated(true);
       } else {
@@ -95,6 +95,7 @@ export default function Admin() {
       setAuthError("Eroare la conectare");
     }
   };
+  
 
   /* ================= ORDERS ================= */
   const { data: orders = [], isLoading, refetch } = useQuery<Order[]>({
