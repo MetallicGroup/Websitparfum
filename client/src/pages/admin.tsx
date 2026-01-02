@@ -1,10 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Lock,
   Package,
-  User,
   Phone,
   MapPin,
   Clock,
@@ -12,21 +9,10 @@ import {
   Truck,
   XCircle,
   RefreshCw,
-  Bell,
-  Users,
-  Monitor,
-  Smartphone,
-  Eye,
-  UserPlus,
-  Download,
-  Send,
-  MessageCircle,
-  ExternalLink,
-  Loader2,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -35,54 +21,40 @@ import {
 } from "@/components/ui/card";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Order, Lead } from "@shared/schema";
+import type { Order } from "@shared/schema";
 
-interface Visitor {
-  id: string;
-  page: string;
-  lastAction: string;
-  lastActionTime: string;
-  connectedAt: string;
-  device: string;
-}
+const statusLabels: Record<string, string> = {
+  pending: "În așteptare",
+  processing: "În procesare",
+  shipped: "Expediată",
+  delivered: "Livrată",
+  cancelled: "Anulată",
+};
 
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const [newOrderAlert, setNewOrderAlert] = useState<Order | null>(null);
-  const [visitors, setVisitors] = useState<Visitor[]>([]);
-  const [visitorCount, setVisitorCount] = useState(0);
-
-  const wsRef = useRef<WebSocket | null>(null);
+  const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
   /* ================= LOGIN ================= */
-  const handleLogin = async (e: React.FormEvent) => {
+  const login = async (e: React.FormEvent) => {
     e.preventDefault();
-    setAuthError("");
+    setError("");
 
-    try {
-      const res = await fetch("/api/admin/orders", {
-        headers: {
-          Authorization: `Bearer ${password}`,
-        },
-      });
+    const res = await fetch("/api/admin/orders", {
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+    });
 
-      if (res.ok) {
-        setIsAuthenticated(true);
-      } else {
-        setAuthError("Parolă incorectă");
-      }
-    } catch {
-      setAuthError("Eroare de conexiune");
-    }
+    if (res.ok) setIsAuthenticated(true);
+    else setError("Parolă incorectă");
   };
 
   /* ================= ORDERS ================= */
@@ -102,28 +74,17 @@ export default function Admin() {
       if (!res.ok) throw new Error("Unauthorized");
       return res.json();
     },
-    refetchInterval: 30000,
   });
 
-  /* ================= LEADS ================= */
-  const { data: leads = [] } = useQuery<Lead[]>({
-    queryKey: ["admin-leads"],
-    enabled: isAuthenticated,
-    queryFn: async () => {
-      const res = await fetch("/api/admin/leads", {
-        headers: {
-          Authorization: `Bearer ${password}`,
-        },
-      });
-      if (!res.ok) throw new Error("Unauthorized");
-      return res.json();
-    },
-    refetchInterval: 30000,
-  });
-
-  /* ================= MUTATIONS ================= */
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+  /* ================= STATUS UPDATE ================= */
+  const updateStatus = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: string;
+    }) => {
       const res = await fetch(`/api/admin/orders/${id}/status`, {
         method: "PATCH",
         headers: {
@@ -132,7 +93,7 @@ export default function Admin() {
         },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error("Error");
       return res.json();
     },
     onSuccess: () => {
@@ -140,87 +101,27 @@ export default function Admin() {
     },
   });
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async (leadId: string) => {
-      const res = await fetch(`/api/admin/leads/${leadId}/send-message`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${password}`,
-        },
-      });
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
-    },
-  });
-
-  const sendAllMessagesMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/admin/leads/send-all", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${password}`,
-        },
-      });
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
-  });
-
-  /* ================= WEBSOCKET ================= */
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
-    wsRef.current = ws;
-
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-
-      if (data.type === "new_order") {
-        setNewOrderAlert(data.order);
-        queryClient.setQueryData<Order[]>(["admin-orders"], (old = []) => [
-          data.order,
-          ...old,
-        ]);
-        setTimeout(() => setNewOrderAlert(null), 5000);
-      }
-
-      if (data.type === "visitors_update") {
-        setVisitors(data.visitors);
-        setVisitorCount(data.count);
-      }
-    };
-
-    return () => ws.close();
-  }, [isAuthenticated, queryClient]);
-
   /* ================= LOGIN UI ================= */
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <Lock className="mx-auto mb-4" />
+            <Lock className="mx-auto mb-2" />
             <CardTitle>Admin Panel</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={login} className="space-y-4">
               <Input
                 type="password"
-                placeholder="Introduceți parola"
+                placeholder="Parolă admin"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              {authError && (
-                <p className="text-sm text-red-600 text-center">{authError}</p>
+              {error && (
+                <p className="text-red-600 text-sm text-center">{error}</p>
               )}
-              <Button className="w-full" type="submit">
-                Autentificare
-              </Button>
+              <Button className="w-full">Autentificare</Button>
             </form>
           </CardContent>
         </Card>
@@ -231,13 +132,94 @@ export default function Admin() {
   /* ================= DASHBOARD ================= */
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Admin Panel</h1>
+        <Button onClick={() => refetch()} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+      </div>
 
-      <Button onClick={() => refetch()} className="mb-4">
-        <RefreshCw className="mr-2 h-4 w-4" /> Refresh
-      </Button>
+      {isLoading ? (
+        <p>Se încarcă comenzile…</p>
+      ) : orders.length === 0 ? (
+        <p>Nu există comenzi.</p>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <Card key={order.id}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h2 className="font-bold text-lg">
+                    {order.customerName}
+                  </h2>
+                  <Select
+                    value={order.status}
+                    onValueChange={(status) =>
+                      updateStatus.mutate({ id: order.id, status })
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">
+                        <Clock className="inline w-4 h-4 mr-1" />
+                        În așteptare
+                      </SelectItem>
+                      <SelectItem value="processing">
+                        <RefreshCw className="inline w-4 h-4 mr-1" />
+                        Procesare
+                      </SelectItem>
+                      <SelectItem value="shipped">
+                        <Truck className="inline w-4 h-4 mr-1" />
+                        Expediată
+                      </SelectItem>
+                      <SelectItem value="delivered">
+                        <CheckCircle className="inline w-4 h-4 mr-1" />
+                        Livrată
+                      </SelectItem>
+                      <SelectItem value="cancelled">
+                        <XCircle className="inline w-4 h-4 mr-1" />
+                        Anulată
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-      {/* restul UI-ului tău poate rămâne neschimbat */}
+                <p className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4" />
+                  <a href={`tel:${order.phoneNumber}`} className="underline">
+                    {order.phoneNumber}
+                  </a>
+                </p>
+
+                <p className="flex items-start gap-2 text-sm">
+                  <MapPin className="w-4 h-4 mt-0.5" />
+                  {order.address}, {order.city}, {order.county}
+                </p>
+
+                <div className="bg-gray-100 rounded p-3">
+                  {order.products.map((p, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span>
+                        {p.quantity}× {p.name}
+                      </span>
+                      <span>
+                        {p.price * p.quantity} Lei
+                      </span>
+                    </div>
+                  ))}
+                  <div className="border-t mt-2 pt-2 flex justify-between font-bold">
+                    <span>Total (livrare {order.shippingCost} Lei)</span>
+                    <span>{order.grandTotal} Lei</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
