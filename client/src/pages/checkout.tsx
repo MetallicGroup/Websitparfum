@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Truck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { trackTikTokEvent, identifyTikTokUser } from "@/lib/tiktok-pixel";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "Prenumele este obligatoriu"),
@@ -31,22 +32,21 @@ export default function Checkout() {
 
   // TikTok Pixel - InitiateCheckout Event
   useEffect(() => {
-    if (items.length > 0 && typeof window !== 'undefined') {
-      // TikTok
-      if ((window as any).ttq) {
-        (window as any).ttq.track('InitiateCheckout', {
-          contents: items.map(item => ({
-            content_id: item.id,
-            content_name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          value: grandTotal,
-          currency: 'RON',
-        });
-      }
+    if (items.length > 0) {
+      trackTikTokEvent('InitiateCheckout', {
+        contents: items.map(item => ({
+          content_id: item.id,
+          content_type: 'product',
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        value: grandTotal,
+        currency: 'RON',
+      });
+
       // Facebook
-      if ((window as any).fbq) {
+      if (typeof window !== 'undefined' && (window as any).fbq) {
         (window as any).fbq('track', 'InitiateCheckout', {
           content_ids: items.map(item => item.id),
           contents: items.map(item => ({
@@ -128,19 +128,30 @@ export default function Checkout() {
       return response.json();
     },
     onSuccess: (data) => {
-      // TikTok Pixel - CompletePayment Event
-      if (typeof window !== 'undefined' && (window as any).ttq) {
-        (window as any).ttq.track('CompletePayment', {
-          contents: items.map(item => ({
-            content_id: item.id,
-            content_name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          value: grandTotal,
-          currency: 'RON',
-        });
-      }
+      // TikTok Pixel - PlaceAnOrder and Purchase Events
+      trackTikTokEvent('PlaceAnOrder', {
+        contents: items.map(item => ({
+          content_id: item.id,
+          content_type: 'product',
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        value: grandTotal,
+        currency: 'RON',
+      });
+
+      trackTikTokEvent('Purchase', {
+        contents: items.map(item => ({
+          content_id: item.id,
+          content_type: 'product',
+          content_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        value: grandTotal,
+        currency: 'RON',
+      });
 
       // Facebook Pixel - Purchase Event
       if (typeof window !== 'undefined' && (window as any).fbq) {
@@ -174,7 +185,27 @@ export default function Checkout() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Identify user with PII data before tracking payment info
+    await identifyTikTokUser(
+      undefined, // No email in form
+      values.phone,
+      `${values.firstName}_${values.lastName}_${values.phone}` // External ID
+    );
+
+    // Track AddPaymentInfo when form is submitted
+    trackTikTokEvent('AddPaymentInfo', {
+      contents: items.map(item => ({
+        content_id: item.id,
+        content_type: 'product',
+        content_name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      value: grandTotal,
+      currency: 'RON',
+    });
+
     createOrderMutation.mutate(values);
   }
 
@@ -227,7 +258,7 @@ export default function Checkout() {
             </h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="firstName"
@@ -235,7 +266,12 @@ export default function Checkout() {
                       <FormItem>
                         <FormLabel>Prenume</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ion" {...field} />
+                          <Input 
+                            placeholder="Ion" 
+                            {...field} 
+                            className="min-h-[48px] md:min-h-9"
+                            autoComplete="given-name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -248,7 +284,12 @@ export default function Checkout() {
                       <FormItem>
                         <FormLabel>Nume</FormLabel>
                         <FormControl>
-                          <Input placeholder="Popescu" {...field} />
+                          <Input 
+                            placeholder="Popescu" 
+                            {...field} 
+                            className="min-h-[48px] md:min-h-9"
+                            autoComplete="family-name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -263,7 +304,14 @@ export default function Checkout() {
                     <FormItem>
                       <FormLabel>Telefon</FormLabel>
                       <FormControl>
-                        <Input placeholder="07xx xxx xxx" {...field} />
+                        <Input 
+                          placeholder="07xx xxx xxx" 
+                          {...field} 
+                          type="tel"
+                          className="min-h-[48px] md:min-h-9"
+                          autoComplete="tel"
+                          inputMode="numeric"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -277,14 +325,19 @@ export default function Checkout() {
                     <FormItem>
                       <FormLabel>Adresa completă</FormLabel>
                       <FormControl>
-                        <Input placeholder="Strada, Număr, Bloc, Apartament" {...field} />
+                        <Input 
+                          placeholder="Strada, Număr, Bloc, Apartament" 
+                          {...field} 
+                          className="min-h-[48px] md:min-h-9"
+                          autoComplete="street-address"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="city"
@@ -292,7 +345,12 @@ export default function Checkout() {
                       <FormItem>
                         <FormLabel>Oraș</FormLabel>
                         <FormControl>
-                          <Input placeholder="București" {...field} />
+                          <Input 
+                            placeholder="București" 
+                            {...field} 
+                            className="min-h-[48px] md:min-h-9"
+                            autoComplete="address-level2"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -305,7 +363,12 @@ export default function Checkout() {
                       <FormItem>
                         <FormLabel>Județ</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ilfov" {...field} />
+                          <Input 
+                            placeholder="Ilfov" 
+                            {...field} 
+                            className="min-h-[48px] md:min-h-9"
+                            autoComplete="address-level1"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -316,7 +379,7 @@ export default function Checkout() {
                 <Button 
                   type="submit" 
                   size="lg" 
-                  className="w-full mt-8 text-lg h-12"
+                  className="w-full mt-8 text-base md:text-lg min-h-[56px] md:h-12"
                   disabled={createOrderMutation.isPending}
                   data-testid="button-submit-order"
                 >
@@ -338,7 +401,7 @@ export default function Checkout() {
               {items.map((item) => (
                 <div key={item.id} className="flex gap-4">
                   <div className="h-16 w-16 bg-white rounded-md overflow-hidden flex-shrink-0 p-1">
-                    <img src={item.image} alt={item.name} className="h-full w-full object-contain mix-blend-multiply" />
+                    <img src={item.image} alt={item.name} className="h-full w-full object-contain mix-blend-multiply" loading="lazy" />
                   </div>
                   <div className="flex-1 text-sm">
                     <p className="font-medium line-clamp-2">{item.name}</p>

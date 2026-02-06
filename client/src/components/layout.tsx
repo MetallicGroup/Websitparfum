@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { ShoppingBag, Menu, X, Phone, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { products } from "@/lib/products";
+import { useDebounce } from "@/hooks/use-debounce";
+import { trackTikTokEvent } from "@/lib/tiktok-pixel";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -16,12 +18,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
 
   const remainingForFreeShipping = shippingThreshold - total;
 
   const filteredProducts = products.filter(product => 
-    searchQuery.length > 1 && product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    debouncedSearchQuery.length > 1 && product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
   );
+
+  // Track Search event when user searches in header
+  useEffect(() => {
+    if (debouncedSearchQuery.length > 1 && filteredProducts.length > 0) {
+      const totalValue = filteredProducts.slice(0, 5).reduce((sum, p) => sum + p.price, 0);
+      trackTikTokEvent('Search', {
+        contents: filteredProducts.slice(0, 5).map(product => ({
+          content_id: product.id,
+          content_type: 'product',
+          content_name: product.name,
+        })),
+        value: totalValue,
+        currency: 'RON',
+        search_string: debouncedSearchQuery,
+      });
+    }
+  }, [debouncedSearchQuery, filteredProducts]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
@@ -101,14 +121,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {/* Search Dropdown */}
-              {searchQuery.length > 1 && (
+              {debouncedSearchQuery.length > 1 && searchQuery.length > 1 && (
                 <div className="absolute top-full right-0 mt-2 w-72 bg-card rounded-md shadow-xl border z-50 max-h-[300px] overflow-y-auto p-2">
                   {filteredProducts.length > 0 ? (
                     filteredProducts.slice(0, 5).map(product => (
                       <Link key={product.id} href={`/category/${product.category}`} onClick={() => setSearchQuery("")}>
                         <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-sm cursor-pointer transition-colors">
                           <div className="h-8 w-8 bg-secondary rounded flex items-center justify-center overflow-hidden">
-                             <img src={product.image} alt="" className="h-full w-full object-contain mix-blend-multiply" />
+                             <img src={product.image} alt="" className="h-full w-full object-contain mix-blend-multiply" loading="lazy" />
                           </div>
                           <div className="overflow-hidden">
                             <p className="text-sm font-medium truncate">{product.name}</p>
@@ -174,7 +194,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         {items.map((item) => (
                           <div key={item.id} className="flex gap-4 py-4 border-b border-border/50 last:border-0">
                             <div className="h-20 w-20 bg-secondary rounded-md overflow-hidden flex-shrink-0 p-2">
-                              <img src={item.image} alt={item.name} className="h-full w-full object-contain mix-blend-multiply" />
+                              <img src={item.image} alt={item.name} className="h-full w-full object-contain mix-blend-multiply" loading="lazy" />
                             </div>
                             <div className="flex-1 flex flex-col justify-between">
                               <div>
@@ -185,24 +205,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                 <div className="flex items-center gap-2 border rounded-md px-2 py-1">
                                   <button 
                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                    className="text-muted-foreground hover:text-foreground disabled:opacity-50"
+                                    className="text-muted-foreground hover:text-foreground disabled:opacity-50 min-w-[36px] min-h-[36px] md:min-w-[28px] md:min-h-[28px] flex items-center justify-center touch-manipulation"
                                     disabled={item.quantity <= 1}
+                                    aria-label="Scade cantitatea"
                                   >
                                     -
                                   </button>
-                                  <span className="text-xs w-4 text-center">{item.quantity}</span>
+                                  <span className="text-xs w-8 md:w-4 text-center">{item.quantity}</span>
                                   <button 
                                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                    className="text-muted-foreground hover:text-foreground"
+                                    className="text-muted-foreground hover:text-foreground min-w-[36px] min-h-[36px] md:min-w-[28px] md:min-h-[28px] flex items-center justify-center touch-manipulation"
+                                    aria-label="Crește cantitatea"
                                   >
                                     +
                                   </button>
                                 </div>
                                 <Button 
                                   variant="ghost" 
-                                  size="sm" 
-                                  className="h-auto p-0 text-destructive hover:text-destructive/80 hover:bg-transparent"
+                                  size="icon" 
+                                  className="min-w-[44px] min-h-[44px] md:min-w-9 md:min-h-9 text-destructive hover:text-destructive/80 hover:bg-transparent"
                                   onClick={() => removeFromCart(item.id)}
+                                  aria-label="Șterge din coș"
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
@@ -257,15 +280,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
       </main>
 
-      {/* WhatsApp Button */}
+      {/* WhatsApp Button - Mobile Optimized */}
       <a
         href="https://wa.me/40771267846?text=Buna%20ziua!%20Am%20nevoie%20de%20ajutor%20cu%20o%20comanda."
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 group"
+        className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 md:p-4 rounded-full shadow-lg hover:shadow-xl active:scale-95 hover:scale-110 transition-all duration-300 group touch-manipulation min-w-[56px] min-h-[56px] md:min-w-[64px] md:min-h-[64px] flex items-center justify-center"
+        aria-label="Contactează-ne pe WhatsApp"
       >
-        <Phone className="h-6 w-6 fill-current" />
-        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+        <Phone className="h-6 w-6 md:h-7 md:w-7 fill-current" />
+        <span className="hidden md:block absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
           Ai nevoie de ajutor?
         </span>
       </a>

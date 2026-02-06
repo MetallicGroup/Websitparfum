@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal } from "lucide-react";
@@ -7,6 +7,8 @@ import { ProductCard } from "@/components/product-card";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks/use-debounce";
+import { trackTikTokEvent } from "@/lib/tiktok-pixel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,7 @@ export default function Category() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
 
   const titles = {
     women: "Parfumuri Damă",
@@ -37,13 +40,30 @@ export default function Category() {
   // Filter & Sort Logic
   const filteredProducts = allProducts
     .filter((product) => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      debouncedSearchQuery.length === 0 || product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     )
     .sort((a, b) => {
       if (sortOrder === "asc") return a.price - b.price;
       if (sortOrder === "desc") return b.price - a.price;
       return 0;
     });
+
+  // Track Search event when user searches in category
+  useEffect(() => {
+    if (debouncedSearchQuery.length > 0 && filteredProducts.length > 0) {
+      const totalValue = filteredProducts.slice(0, 5).reduce((sum, p) => sum + p.price, 0);
+      trackTikTokEvent('Search', {
+        contents: filteredProducts.slice(0, 5).map(product => ({
+          content_id: product.id,
+          content_type: 'product',
+          content_name: product.name,
+        })),
+        value: totalValue,
+        currency: 'RON',
+        search_string: debouncedSearchQuery,
+      });
+    }
+  }, [debouncedSearchQuery, filteredProducts]);
 
   return (
     <div className="container py-12 min-h-screen">

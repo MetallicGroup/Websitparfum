@@ -7,12 +7,29 @@ import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/lib/cart";
 import { products } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
+import { trackTikTokEvent } from "@/lib/tiktok-pixel";
+import { useEffect } from "react";
 
 export default function ProductPage() {
   const [, params] = useRoute("/product/:id");
   const { addToCart } = useCart();
   
   const product = products.find(p => p.id === params?.id);
+  
+  // Track ViewContent when product page loads
+  useEffect(() => {
+    if (product) {
+      trackTikTokEvent('ViewContent', {
+        contents: [{
+          content_id: product.id,
+          content_type: 'product',
+          content_name: product.name,
+        }],
+        value: product.price,
+        currency: 'RON',
+      });
+    }
+  }, [product]);
   
   if (!product) {
     return (
@@ -52,8 +69,10 @@ export default function ProductPage() {
           <img 
             src={product.image} 
             alt={product.name}
+            loading="eager"
             className="w-full max-w-sm h-auto object-contain mix-blend-multiply drop-shadow-2xl"
             data-testid="img-product"
+            decoding="async"
           />
         </motion.div>
 
@@ -101,7 +120,7 @@ export default function ProductPage() {
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button 
               size="lg" 
-              className="flex-1 h-14 text-lg"
+              className="flex-1 min-h-[52px] md:h-14 text-base md:text-lg"
               onClick={() => addToCart(product)}
               data-testid="button-add-to-cart"
             >
@@ -112,7 +131,7 @@ export default function ProductPage() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="w-full h-14 text-lg"
+                className="w-full min-h-[52px] md:h-14 text-base md:text-lg"
                 onClick={() => addToCart(product)}
                 data-testid="button-buy-now"
               >

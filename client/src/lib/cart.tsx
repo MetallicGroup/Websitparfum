@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Product } from "./products";
+import { trackTikTokEvent } from "./tiktok-pixel";
 
 type CartItem = Product & { quantity: number };
 
@@ -24,6 +25,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const SHIPPING_COST = 19.99;
 
   const addToCart = (product: Product) => {
+    // Immediate state update for instant feedback
     setItems(current => {
       const existing = current.find(item => item.id === product.id);
       if (existing) {
@@ -36,32 +38,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...current, { ...product, quantity: 1 }];
     });
 
-    // TikTok Pixel - AddToCart Event
-    if (typeof window !== 'undefined' && (window as any).ttq) {
-      (window as any).ttq.track('AddToCart', {
-        content_id: product.id,
-        content_name: product.name,
-        content_type: 'product',
-        price: product.price,
-        currency: 'RON',
-        quantity: 1,
-      });
+    // Dispatch immediate feedback event for UI updates
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent("cart-add", { 
+        detail: { productId: product.id, productName: product.name }
+      }));
     }
 
-    // Facebook Pixel - AddToCart Event
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'AddToCart', {
-        content_ids: [product.id],
-        content_name: product.name,
-        content_type: 'product',
+    // Analytics tracking (non-blocking)
+    if (typeof window !== 'undefined') {
+      // TikTok Pixel - AddToCart Event (with proper format)
+      trackTikTokEvent('AddToCart', {
+        contents: [{
+          content_id: product.id,
+          content_type: 'product',
+          content_name: product.name,
+          quantity: 1,
+          price: product.price,
+        }],
         value: product.price,
         currency: 'RON',
       });
-    }
 
-    // Track cart add for visitor tracking
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent("cart-add"));
+      // Facebook Pixel - AddToCart Event
+      if ((window as any).fbq) {
+        (window as any).fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_name: product.name,
+          content_type: 'product',
+          value: product.price,
+          currency: 'RON',
+        });
+      }
     }
   };
 

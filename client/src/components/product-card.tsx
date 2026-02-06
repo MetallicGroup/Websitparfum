@@ -1,15 +1,29 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/cart";
 import { Product } from "@/lib/products";
+import { useState, useEffect } from "react";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
 
   const discountPercentage = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+
+  // Listen for cart add events for immediate feedback
+  useEffect(() => {
+    const handleCartAdd = (e: CustomEvent) => {
+      if (e.detail?.productId === product.id) {
+        setJustAdded(true);
+        setTimeout(() => setJustAdded(false), 2000);
+      }
+    };
+    window.addEventListener("cart-add", handleCartAdd as EventListener);
+    return () => window.removeEventListener("cart-add", handleCartAdd as EventListener);
+  }, [product.id]);
 
   return (
     <motion.div 
@@ -32,9 +46,11 @@ export function ProductCard({ product }: { product: Product }) {
           <motion.img 
             src={product.image} 
             alt={product.name}
+            loading="lazy"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.5 }}
             className="w-full h-full object-contain mix-blend-multiply drop-shadow-xl"
+            decoding="async"
           />
         </div>
       </Link>
@@ -42,14 +58,24 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Quick Add Button - Below image on mobile, overlay on desktop */}
       <div className="px-4 py-2 md:absolute md:bottom-4 md:left-0 md:right-0 md:px-4 md:py-0 md:opacity-0 group-hover:md:opacity-100 transition-all duration-300 md:translate-y-4 group-hover:md:translate-y-0">
         <Button 
-          className="w-full shadow-lg font-medium tracking-wide text-sm md:text-base" 
+          className="w-full shadow-lg font-medium tracking-wide text-sm md:text-base min-h-[48px] md:min-h-10" 
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             addToCart(product);
           }}
           data-testid={`button-add-cart-${product.id}`}
+          disabled={justAdded}
         >
-          <ShoppingBag className="mr-2 h-4 w-4" /> Adaugă în coș
+          {justAdded ? (
+            <>
+              <Check className="mr-2 h-4 w-4" /> Adăugat!
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="mr-2 h-4 w-4" /> Adaugă în coș
+            </>
+          )}
         </Button>
       </div>
 

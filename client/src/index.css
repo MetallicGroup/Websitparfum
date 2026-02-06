@@ -94,8 +94,32 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Prevent text size adjustment on iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+  }
+  
+  /* Mobile touch optimizations */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Prevent double-tap zoom on buttons */
+  @media (max-width: 768px) {
+    button, a, [role="button"] {
+      touch-action: manipulation;
+    }
+  }
+  
+  /* Optimize image loading */
+  img {
+    content-visibility: auto;
   }
 }

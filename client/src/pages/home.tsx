@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/product-card";
 import { SocialProofPopup } from "@/components/social-proof-popup";
 import { products } from "@/lib/products";
+import { useDebounce } from "@/hooks/use-debounce";
+import { trackTikTokEvent } from "@/lib/tiktok-pixel";
+import { useEffect } from "react";
 import heroBg from "@assets/generated_images/luxury_perfume_bottles_pink_podium.png";
 
 // Collage image paths (from public folder)
@@ -52,10 +55,28 @@ const categorySections = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
 
   const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    debouncedSearchQuery.length > 0 && product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
   );
+
+  // Track Search event when user searches
+  useEffect(() => {
+    if (debouncedSearchQuery.length > 0 && filteredProducts.length > 0) {
+      const totalValue = filteredProducts.slice(0, 5).reduce((sum, p) => sum + p.price, 0);
+      trackTikTokEvent('Search', {
+        contents: filteredProducts.slice(0, 5).map(product => ({
+          content_id: product.id,
+          content_type: 'product',
+          content_name: product.name,
+        })),
+        value: totalValue,
+        currency: 'RON',
+        search_string: debouncedSearchQuery,
+      });
+    }
+  }, [debouncedSearchQuery, filteredProducts]);
 
   return (
     <div className="space-y-12 md:space-y-20 pb-20">
@@ -101,13 +122,13 @@ export default function Home() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   data-testid="input-search"
                 />
-                {searchQuery && (
+                {debouncedSearchQuery && searchQuery && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl p-2 max-h-[400px] overflow-y-auto" style={{ zIndex: 9999 }}>
                     {filteredProducts.length > 0 ? (
                       filteredProducts.slice(0, 5).map(product => (
                         <Link key={product.id} href={`/category/${product.category}`}>
                           <div className="flex items-center gap-3 p-2 hover:bg-secondary rounded-md cursor-pointer" data-testid={`search-result-${product.id}`}>
-                            <img src={product.image} alt={product.name} className="h-10 w-10 object-contain" />
+                            <img src={product.image} alt={product.name} className="h-10 w-10 object-contain" loading="lazy" />
                             <div>
                               <p className="text-sm font-medium text-black">{product.name}</p>
                               <p className="text-xs text-muted-foreground">{product.price} Lei</p>
@@ -197,21 +218,21 @@ export default function Home() {
       <section className="container lg:hidden -mt-4">
         <div className="grid grid-cols-3 gap-3">
           <Link href="/category/women" className="relative rounded-xl overflow-hidden aspect-square bg-pink-100 shadow-lg" data-testid="link-category-women-mobile">
-            <img src={women1} alt="Parfumuri Damă" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" />
+            <img src={women1} alt="Parfumuri Damă" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" loading="lazy" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pink-600 to-transparent p-2 pt-6">
               <span className="text-white text-xs font-bold">DAMĂ</span>
             </div>
             <div className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">-30%</div>
           </Link>
           <Link href="/category/men" className="relative rounded-xl overflow-hidden aspect-square bg-slate-100 shadow-lg" data-testid="link-category-men-mobile">
-            <img src={men1} alt="Parfumuri Bărbați" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" />
+            <img src={men1} alt="Parfumuri Bărbați" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" loading="lazy" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-700 to-transparent p-2 pt-6">
               <span className="text-white text-xs font-bold">BĂRBAȚI</span>
             </div>
             <div className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">-25%</div>
           </Link>
           <Link href="/category/unisex" className="relative rounded-xl overflow-hidden aspect-square bg-teal-100 shadow-lg" data-testid="link-category-unisex-mobile">
-            <img src={unisex1} alt="Parfumuri Unisex" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" />
+            <img src={unisex1} alt="Parfumuri Unisex" className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply" loading="lazy" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-teal-600 to-transparent p-2 pt-6">
               <span className="text-white text-xs font-bold">UNISEX</span>
             </div>
