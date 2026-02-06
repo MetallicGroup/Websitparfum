@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertOrderSchema, insertLeadSchema, type Order, type ConversationState } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { searchProducts, getProductById, getProductsByCategory, type Product } from "./products";
+import { sendTikTokPurchaseEvent } from "./tiktok-events-api";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
@@ -370,6 +371,13 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
           );
 
           await notifyAdminNewOrder(order, from);
+          
+          // Send TikTok Events API - Purchase and PlaceAnOrder events (from WhatsApp)
+          await sendTikTokPurchaseEvent(order, {
+            ip: undefined, // No IP for WhatsApp orders
+            userAgent: 'WhatsApp',
+          });
+          
           await storage.deleteConversation(from);
           
         } catch (error) {
@@ -629,6 +637,15 @@ export async function registerRoutes(
           "Luxe Parfum"
         ]
       );
+
+      // Send TikTok Events API - Purchase and PlaceAnOrder events
+      const clientIp = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || '';
+      const userAgent = req.headers['user-agent'] || '';
+      
+      await sendTikTokPurchaseEvent(order, {
+        ip: Array.isArray(clientIp) ? clientIp[0] : clientIp,
+        userAgent: userAgent,
+      });
 
       res.status(201).json(order);
     } catch (error) {
