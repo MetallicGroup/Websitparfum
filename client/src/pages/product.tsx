@@ -42,8 +42,6 @@ export default function ProductPage() {
     );
   }
 
-  const discountPercentage = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-  
   const relatedProducts = products
     .filter(p => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
@@ -63,9 +61,6 @@ export default function ProductPage() {
           animate={{ opacity: 1, x: 0 }}
           className="relative bg-secondary/30 rounded-2xl p-8 md:p-12 flex items-center justify-center"
         >
-          <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-lg px-3 py-1">
-            -{discountPercentage}%
-          </Badge>
           <img 
             src={product.image} 
             alt={product.name}
@@ -92,12 +87,6 @@ export default function ProductPage() {
 
           <div className="flex items-baseline gap-4">
             <span className="text-4xl font-bold text-primary">{product.price} Lei</span>
-            <span className="text-xl text-muted-foreground line-through">
-              {product.oldPrice} Lei
-            </span>
-            <Badge variant="secondary" className="text-green-600 bg-green-100">
-              Economisești {product.oldPrice - product.price} Lei
-            </Badge>
           </div>
 
           <Separator />

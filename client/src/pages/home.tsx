@@ -100,10 +100,10 @@ export default function Home() {
             >
               <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl font-black leading-tight mb-2 md:mb-4 text-shadow-lg tracking-tight">
                 Luxe Parfum <br />
-                <span className="text-white italic font-medium text-3xl md:text-4xl lg:text-5xl">Reduceri Speciale</span>
+                <span className="text-white italic font-medium text-3xl md:text-4xl lg:text-5xl">Arome de Lux</span>
               </h1>
               <p className="text-base md:text-lg lg:text-xl text-white font-medium max-w-lg leading-relaxed text-shadow">
-                Alege parfumurile tale preferate și bucură-te de reduceri speciale.
+                Alege parfumurile tale preferate și descoperă arome de lux la prețuri accesibile.
               </p>
             </motion.div>
             

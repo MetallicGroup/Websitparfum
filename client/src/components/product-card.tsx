@@ -11,8 +11,6 @@ export function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const [justAdded, setJustAdded] = useState(false);
 
-  const discountPercentage = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-
   // Listen for cart add events for immediate feedback
   useEffect(() => {
     const handleCartAdd = (e: CustomEvent) => {
@@ -33,13 +31,6 @@ export function ProductCard({ product }: { product: Product }) {
       className="group relative bg-card rounded-sm border border-transparent hover:border-border/50 hover:shadow-lg transition-all duration-300 flex flex-col h-full"
       data-testid={`card-product-${product.id}`}
     >
-      {/* Discount Badge */}
-      <Badge 
-        className="absolute top-3 left-3 z-10 bg-destructive text-destructive-foreground hover:bg-destructive font-bold rounded-sm px-2"
-      >
-        -{discountPercentage}%
-      </Badge>
-
       {/* Image Container - Clickable */}
       <Link href={`/product/${product.id}`}>
         <div className="aspect-[4/5] w-full bg-secondary/30 p-6 flex items-center justify-center overflow-hidden relative cursor-pointer">
@@ -91,9 +82,6 @@ export function ProductCard({ product }: { product: Product }) {
           
           <div className="mt-auto pt-2 flex items-baseline gap-2 md:gap-3">
             <span className="text-base md:text-lg font-bold text-foreground">{product.price} Lei</span>
-            <span className="text-xs md:text-sm text-muted-foreground line-through decoration-destructive/50 decoration-2">
-              {product.oldPrice} Lei
-            </span>
           </div>
         </div>
       </Link>

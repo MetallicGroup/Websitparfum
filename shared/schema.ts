@@ -84,7 +84,6 @@ export const conversationStates = pgTable("conversation_states", {
     id: string;
     name: string;
     price: number;
-    oldPrice: number;
   }>>().default([]),
   deliveryAddress: text("delivery_address"),
   lastMessage: text("last_message"),

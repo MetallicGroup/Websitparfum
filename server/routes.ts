@@ -231,7 +231,7 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
       }
       
       if (results.length > 0) {
-        const searchResultsToStore = results.map(p => ({ id: p.id, name: p.name, price: p.price, oldPrice: p.oldPrice }));
+        const searchResultsToStore = results.map(p => ({ id: p.id, name: p.name, price: p.price }));
         await storage.upsertConversation(from, { state: "awaiting_selection", searchResults: searchResultsToStore });
         await sendProductResults(from, results, header);
       } else {
@@ -409,7 +409,7 @@ async function handleChatbotMessage(from: string, messageText: string, buttonPay
 async function sendProductResults(to: string, products: Product[], header: string): Promise<void> {
   let message = `${header}\n\n`;
   products.forEach((product, index) => {
-    message += `${index + 1}. ${product.name}\n   💰 ${product.price} lei (era ${product.oldPrice} lei)\n\n`;
+    message += `${index + 1}. ${product.name}\n   💰 ${product.price} lei\n\n`;
   });
   message += "Scrie numărul parfumului dorit (ex: 1, 2, 3...)";
   await sendTextMessage(to, message);

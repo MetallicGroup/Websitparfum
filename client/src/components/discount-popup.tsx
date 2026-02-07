@@ -67,10 +67,10 @@ export function DiscountPopup() {
             OFERTĂ EXCLUSIVĂ
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Profitați de ofertele noastre cu discount
+            Descoperă parfumuri inspirate de lux
           </h2>
           <p className="text-gray-600 text-sm sm:text-base">
-            Înscrie-te acum pentru a primi notificări despre cele mai bune oferte!
+            Înscrie-te acum pentru a primi notificări despre noile produse!
           </p>
         </div>
 
