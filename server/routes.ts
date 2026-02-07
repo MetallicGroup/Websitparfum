@@ -6,6 +6,7 @@ import { insertOrderSchema, insertLeadSchema, type Order, type ConversationState
 import { fromZodError } from "zod-validation-error";
 import { searchProducts, getProductById, getProductsByCategory, type Product } from "./products";
 import { sendTikTokPurchaseEvent } from "./tiktok-events-api";
+import { sendCustomerConfirmationEmail, sendAdminNotificationEmail } from "./email-service";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
@@ -645,6 +646,16 @@ export async function registerRoutes(
       await sendTikTokPurchaseEvent(order, {
         ip: Array.isArray(clientIp) ? clientIp[0] : clientIp,
         userAgent: userAgent,
+      });
+
+      // Send email notifications (non-blocking)
+      const customerEmail = (req.body as any).email;
+      Promise.all([
+        sendCustomerConfirmationEmail(order, customerEmail),
+        sendAdminNotificationEmail(order),
+      ]).catch(error => {
+        console.error('Error sending emails:', error);
+        // Don't fail the request if emails fail
       });
 
       res.status(201).json(order);

@@ -19,6 +19,7 @@ const formSchema = z.object({
   firstName: z.string().min(2, "Prenumele este obligatoriu"),
   lastName: z.string().min(2, "Numele este obligatoriu"),
   phone: z.string().min(10, "Număr de telefon invalid"),
+  email: z.string().email("Email invalid").optional().or(z.literal("")),
   address: z.string().min(5, "Adresa este obligatorie"),
   city: z.string().min(2, "Orașul este obligatoriu"),
   county: z.string().min(2, "Județul este obligatoriu"),
@@ -67,6 +68,7 @@ export default function Checkout() {
       firstName: "",
       lastName: "",
       phone: "",
+      email: "",
       address: "",
       city: "",
       county: "",
@@ -79,6 +81,7 @@ export default function Checkout() {
       const orderData: {
         customerName: string;
         phoneNumber: string;
+        email?: string;
         address: string;
         city: string;
         county: string;
@@ -98,11 +101,17 @@ export default function Checkout() {
           name: String(item.name),
           price: Number(item.price),
           quantity: Number(item.quantity),
+          image: String(item.image || ''),
         })),
         total: Number(total),
         shippingCost: Number(shippingCost),
         grandTotal: Number(grandTotal),
       };
+      
+      // Only include email if it has a value
+      if (values.email && values.email.trim()) {
+        orderData.email = values.email.trim();
+      }
       
       // Only include postalCode if it has a value
       if (values.postalCode && values.postalCode.trim()) {
@@ -311,6 +320,26 @@ export default function Checkout() {
                           className="min-h-[48px] md:min-h-9"
                           autoComplete="tel"
                           inputMode="numeric"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email (opțional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="email@example.com" 
+                          {...field} 
+                          type="email"
+                          className="min-h-[48px] md:min-h-9"
+                          autoComplete="email"
                         />
                       </FormControl>
                       <FormMessage />
