@@ -109,7 +109,7 @@ export default function ProductPage() {
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Shield className="h-5 w-5 text-primary" />
-              <span>Produs 100% original și sigilat</span>
+              <span>Parfum inspirat de produsele originale de lux</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <MessageCircle className="h-5 w-5 text-primary" />

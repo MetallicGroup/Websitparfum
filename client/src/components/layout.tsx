@@ -299,7 +299,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div>
             <h3 className="font-serif text-lg font-black mb-4 uppercase">Luxe Parfum</h3>
             <p className="text-muted-foreground max-w-xs">
-              Destinația ta pentru parfumuri de lux. Autenticitate garantată și experiență de shopping premium.
+              Destinația ta pentru parfumuri inspirate de cele mai populare arome de lux. Calitate premium la prețuri accesibile.
             </p>
           </div>
           <div>

@@ -378,8 +378,8 @@ export default function Home() {
               <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-bold text-lg mb-2">Produse Originale</h3>
-              <p className="text-muted-foreground text-sm">Toate parfumurile sunt 100% autentice și sigilate.</p>
+              <h3 className="font-bold text-lg mb-2">Parfumuri Inspirate</h3>
+              <p className="text-muted-foreground text-sm">Parfumuri inspirate de cele mai populare arome de lux.</p>
             </div>
             <div className="bg-background p-6 rounded-xl shadow-sm text-center">
               <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
