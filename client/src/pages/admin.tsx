@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Lock,
@@ -184,10 +184,11 @@ export default function Admin() {
 
   /* ================= DASHBOARD ================= */
   // Safety check - if authenticated but password is empty, reset
-  if (authenticated && !password.trim()) {
-    setAuthenticated(false);
-    return null;
-  }
+  useEffect(() => {
+    if (authenticated && !password.trim()) {
+      setAuthenticated(false);
+    }
+  }, [authenticated, password]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
