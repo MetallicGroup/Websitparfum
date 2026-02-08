@@ -552,6 +552,24 @@ export async function registerRoutes(
     }
   });
 
+  // Get today's statistics (for admin)
+  app.get("/api/stats/today", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const expectedHeader = `Bearer ${ADMIN_PASSWORD}`;
+      
+      if (!authHeader || authHeader !== expectedHeader) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const stats = await storage.getTodayStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
   // Update order status
   app.patch("/api/orders/:id/status", async (req, res) => {
     try {
