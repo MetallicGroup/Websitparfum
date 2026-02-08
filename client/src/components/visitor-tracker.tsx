@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { getSessionId, getDeviceType } from "@/lib/session";
+import { detectTrafficSource } from "@/lib/traffic-source";
 
 const pageNames: Record<string, string> = {
   "/": "Pagina principală",
@@ -13,6 +15,30 @@ export function VisitorTracker() {
   const [location] = useLocation();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionTrackedRef = useRef(false);
+
+  // Track session on first load
+  useEffect(() => {
+    if (location === "/admin" || sessionTrackedRef.current) return;
+    
+    const sessionId = getSessionId();
+    const device = getDeviceType();
+    const trafficSource = detectTrafficSource();
+    
+    // Track session in database
+    fetch('/api/track/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        userAgent: navigator.userAgent,
+        device,
+        trafficSource,
+      }),
+    }).catch(err => console.error('Error tracking session:', err));
+    
+    sessionTrackedRef.current = true;
+  }, []);
 
   useEffect(() => {
     function connect() {
@@ -66,6 +92,17 @@ export function VisitorTracker() {
 
     function handleAddToCart() {
       trackAction("A adăugat în coș");
+      
+      // Track add to cart event in database
+      const sessionId = getSessionId();
+      fetch('/api/track/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          eventType: 'add_to_cart',
+        }),
+      }).catch(err => console.error('Error tracking add to cart:', err));
     }
 
     function handleScroll() {

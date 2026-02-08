@@ -129,16 +129,58 @@ export default function Admin() {
     );
   }
 
+  /* ================= STATS ================= */
+  const {
+    data: stats,
+    refetch: refetchStats,
+  } = useQuery<{ uniqueVisitors: number; addToCartCount: number }>({
+    queryKey: ["admin-stats"],
+    enabled: authenticated,
+    queryFn: async () => {
+      const res = await fetch("/api/stats/today", {
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+      });
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.json();
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   /* ================= DASHBOARD ================= */
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Admin Panel</h1>
-        <Button variant="outline" onClick={() => refetch()}>
+        <Button variant="outline" onClick={() => { refetch(); refetchStats(); }}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>
+
+      {/* Statistics Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Statistici Astăzi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Vizitatori unici:</span>
+                  <span className="text-2xl font-bold">{stats.uniqueVisitors}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Adăugări în coș:</span>
+                  <span className="text-2xl font-bold">{stats.addToCartCount}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {isLoading ? (
         <p>Se încarcă comenzile…</p>

@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { neonConfig, Pool } from "@neondatabase/serverless";
 import ws from "ws";
-import { orders, leads, conversationStates, type Order, type InsertOrder, type Lead, type InsertLead, type ConversationState } from "@shared/schema";
+import { orders, leads, conversationStates, visitorSessions, visitorEvents, type Order, type InsertOrder, type Lead, type InsertLead, type ConversationState } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 neonConfig.webSocketConstructor = ws;
@@ -77,6 +77,32 @@ async function ensureTablesExist() {
         message_sent_at TIMESTAMP,
         message_status TEXT DEFAULT 'pending',
         link_clicked TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
+    // Create visitor_sessions table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitor_sessions (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id TEXT NOT NULL,
+        user_agent TEXT,
+        device TEXT,
+        first_visit TIMESTAMP NOT NULL DEFAULT NOW(),
+        last_visit TIMESTAMP NOT NULL DEFAULT NOW(),
+        page_views REAL NOT NULL DEFAULT 1,
+        added_to_cart REAL NOT NULL DEFAULT 0,
+        traffic_source TEXT
+      )
+    `);
+    
+    // Create visitor_events table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitor_events (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        event_data JSONB,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `);
@@ -240,6 +266,95 @@ export class DatabaseStorage implements IStorage {
 
   async deleteConversation(phoneNumber: string): Promise<void> {
     await db.delete(conversationStates).where(eq(conversationStates.phoneNumber, phoneNumber));
+  }
+
+  // Visitor tracking methods
+  async trackVisitorSession(sessionId: string, userAgent: string, device: string, trafficSource?: string): Promise<void> {
+    try {
+      // Check if session exists
+      const result = await pool.query(
+        `SELECT id FROM visitor_sessions WHERE session_id = $1`,
+        [sessionId]
+      );
+
+      if (result.rows.length > 0) {
+        // Update existing session
+        await pool.query(
+          `UPDATE visitor_sessions 
+           SET last_visit = NOW(), 
+               page_views = page_views + 1,
+               user_agent = COALESCE($1, user_agent),
+               device = COALESCE($2, device),
+               traffic_source = COALESCE($3, traffic_source)
+           WHERE session_id = $4`,
+          [userAgent, device, trafficSource, sessionId]
+        );
+      } else {
+        // Create new session
+        await pool.query(
+          `INSERT INTO visitor_sessions (session_id, user_agent, device, traffic_source, first_visit, last_visit)
+           VALUES ($1, $2, $3, $4, NOW(), NOW())`,
+          [sessionId, userAgent, device, trafficSource]
+        );
+      }
+    } catch (error) {
+      console.error('Error tracking visitor session:', error);
+    }
+  }
+
+  async trackVisitorEvent(sessionId: string, eventType: string, eventData?: any): Promise<void> {
+    try {
+      await pool.query(
+        `INSERT INTO visitor_events (session_id, event_type, event_data)
+         VALUES ($1, $2, $3)`,
+        [sessionId, eventType, eventData ? JSON.stringify(eventData) : null]
+      );
+
+      // If it's an add_to_cart event, increment the counter
+      if (eventType === 'add_to_cart') {
+        await pool.query(
+          `UPDATE visitor_sessions 
+           SET added_to_cart = added_to_cart + 1
+           WHERE session_id = $1`,
+          [sessionId]
+        );
+      }
+    } catch (error) {
+      console.error('Error tracking visitor event:', error);
+    }
+  }
+
+  async getTodayStats(): Promise<{ uniqueVisitors: number; addToCartCount: number }> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Get unique visitors today (sessions that had first_visit today)
+      const visitorsResult = await pool.query(
+        `SELECT COUNT(DISTINCT session_id) as count
+         FROM visitor_sessions
+         WHERE DATE(first_visit) = $1`,
+        [todayStr]
+      );
+
+      // Get add to cart events today
+      const cartResult = await pool.query(
+        `SELECT COUNT(*) as count
+         FROM visitor_events
+         WHERE event_type = 'add_to_cart'
+         AND DATE(created_at) = $1`,
+        [todayStr]
+      );
+
+      return {
+        uniqueVisitors: parseInt(visitorsResult.rows[0]?.count || '0', 10),
+        addToCartCount: parseInt(cartResult.rows[0]?.count || '0', 10),
+      };
+    } catch (error) {
+      console.error('Error getting today stats:', error);
+      return { uniqueVisitors: 0, addToCartCount: 0 };
+    }
   }
 }
 

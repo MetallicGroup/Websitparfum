@@ -1,7 +1,7 @@
+import { pgTable, text, real, timestamp, jsonb, varchar } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, real } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
 export const leads = pgTable("leads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -14,22 +14,13 @@ export const leads = pgTable("leads", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertLeadSchema = createInsertSchema(leads).omit({
-  id: true,
-  messageId: true,
-  messageSentAt: true,
-  messageStatus: true,
-  linkClicked: true,
-  createdAt: true,
-});
-
-export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type Lead = typeof leads.$inferSelect;
 
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   customerName: text("customer_name").notNull(),
   phoneNumber: text("phone_number").notNull(),
+  email: text("email"),
   address: text("address").notNull(),
   city: text("city").notNull(),
   county: text("county").notNull(),
@@ -52,6 +43,7 @@ export const orders = pgTable("orders", {
 export const insertOrderSchema = z.object({
   customerName: z.string().min(1),
   phoneNumber: z.string().min(1),
+  email: z.string().email().optional(),
   address: z.string().min(1),
   city: z.string().min(1),
   county: z.string().min(1),
@@ -94,3 +86,27 @@ export const conversationStates = pgTable("conversation_states", {
 });
 
 export type ConversationState = typeof conversationStates.$inferSelect;
+
+export const insertLeadSchema = createInsertSchema(leads);
+
+// Visitor sessions table
+export const visitorSessions = pgTable("visitor_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  userAgent: text("user_agent"),
+  device: text("device"),
+  firstVisit: timestamp("first_visit").notNull().defaultNow(),
+  lastVisit: timestamp("last_visit").notNull().defaultNow(),
+  pageViews: real("page_views").notNull().default(1),
+  addedToCart: real("added_to_cart").notNull().default(0),
+  trafficSource: text("traffic_source"),
+});
+
+// Visitor events table
+export const visitorEvents = pgTable("visitor_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: text("session_id").notNull(),
+  eventType: text("event_type").notNull(), // 'page_view', 'add_to_cart', etc.
+  eventData: jsonb("event_data"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
