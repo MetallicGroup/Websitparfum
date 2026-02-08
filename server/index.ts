@@ -22,6 +22,24 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+// CORS middleware - allow all origins in production
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  // Allow requests from any origin (since we're serving both API and client from same domain)
+  // In production with custom domain, this should work fine
+  res.header('Access-Control-Allow-Origin', origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
