@@ -151,6 +151,7 @@ export async function sendTikTokEvent(
     
     const payload = {
       pixel_code: TIKTOK_PIXEL_ID,
+      event_source_id: 'web', // Required: identifies the source of the event (web, app, etc.)
       data: [
         {
           event: eventData.event,
