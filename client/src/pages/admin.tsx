@@ -94,6 +94,9 @@ export default function Admin() {
       return res.json();
     },
     retry: false,
+    onError: (error) => {
+      console.error("Orders query error:", error);
+    },
   });
 
   /* ================= UPDATE STATUS ================= */
@@ -153,6 +156,7 @@ export default function Admin() {
   const {
     data: stats,
     refetch: refetchStats,
+    isError: statsError,
   } = useQuery<{ uniqueVisitors: number; addToCartCount: number }>({
     queryKey: ["admin-stats"],
     enabled: authenticated && !!password.trim(),
@@ -173,9 +177,18 @@ export default function Admin() {
     },
     refetchInterval: 30000, // Refresh every 30 seconds
     retry: false,
+    onError: (error) => {
+      console.error("Stats query error:", error);
+    },
   });
 
   /* ================= DASHBOARD ================= */
+  // Safety check - if authenticated but password is empty, reset
+  if (authenticated && !password.trim()) {
+    setAuthenticated(false);
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -209,9 +222,13 @@ export default function Admin() {
         </div>
       )}
 
-      {ordersError && (
+      {(ordersError || statsError) && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-600">Eroare la încărcarea comenzilor. Te rog reîncearcă.</p>
+          <p className="text-red-600">
+            {ordersError ? "Eroare la încărcarea comenzilor. " : ""}
+            {statsError ? "Eroare la încărcarea statisticilor. " : ""}
+            Te rog reîncearcă sau refresh pagina.
+          </p>
         </div>
       )}
 

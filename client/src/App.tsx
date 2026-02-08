@@ -6,6 +6,7 @@ import { CartProvider } from "@/lib/cart";
 import { Layout } from "@/components/layout";
 import { VisitorTracker } from "@/components/visitor-tracker";
 import { DiscountPopup } from "@/components/discount-popup";
+import { ErrorBoundary } from "@/components/error-boundary";
 import Home from "@/pages/home";
 import Category from "@/pages/category";
 import Product from "@/pages/product";
@@ -34,14 +35,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <VisitorTracker />
-        <DiscountPopup />
-        <Router />
-        <Toaster />
-      </CartProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <CartProvider>
+          <VisitorTracker />
+          <DiscountPopup />
+          <Router />
+          <Toaster />
+        </CartProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
