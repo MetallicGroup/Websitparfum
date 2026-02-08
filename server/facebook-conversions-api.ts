@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID || '1117738936893819';
+const FACEBOOK_PIXEL_ID = process.env.FACEBOOK_PIXEL_ID || '928312556298147';
 const FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN || '';
 const FACEBOOK_API_VERSION = 'v21.0';
 
