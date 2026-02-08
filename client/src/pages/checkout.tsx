@@ -102,7 +102,6 @@ export default function Checkout() {
           name: String(item.name),
           price: Number(item.price),
           quantity: Number(item.quantity),
-          image: String(item.image || ''),
         })),
         total: Number(total),
         shippingCost: Number(shippingCost),
