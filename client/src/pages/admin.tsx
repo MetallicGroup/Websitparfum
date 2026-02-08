@@ -85,17 +85,17 @@ export default function Admin() {
         },
       });
       if (!res.ok) {
-        if (res.status === 401) {
-          setAuthenticated(false);
-          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
-        }
-        throw new Error("Unauthorized");
+        throw new Error(res.status === 401 ? "Unauthorized" : "Failed to fetch");
       }
       return res.json();
     },
     retry: false,
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Orders query error:", error);
+      if (error.message === "Unauthorized") {
+        setAuthenticated(false);
+        setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+      }
     },
   });
 
@@ -167,18 +167,18 @@ export default function Admin() {
         },
       });
       if (!res.ok) {
-        if (res.status === 401) {
-          setAuthenticated(false);
-          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
-        }
-        throw new Error("Unauthorized");
+        throw new Error(res.status === 401 ? "Unauthorized" : "Failed to fetch");
       }
       return res.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds
     retry: false,
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Stats query error:", error);
+      if (error.message === "Unauthorized") {
+        setAuthenticated(false);
+        setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+      }
     },
   });
 
