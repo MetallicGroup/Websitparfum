@@ -704,7 +704,6 @@ export async function registerRoutes(
       });
 
       // Send email notifications (non-blocking)
-      const customerEmail = (req.body as any).email;
       Promise.all([
         sendCustomerConfirmationEmail(order, customerEmail),
         sendAdminNotificationEmail(order),
