@@ -9,7 +9,7 @@ import { sendTikTokPurchaseEvent } from "./tiktok-events-api";
 import { sendFacebookPurchaseEvent, sendFacebookAddPaymentInfoEvent } from "./facebook-conversions-api";
 import { sendCustomerConfirmationEmail, sendAdminNotificationEmail } from "./email-service";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'parfum';
 const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
 const SHIPPING_COST = 19.99;
 const FREE_SHIPPING_THRESHOLD = 250;
