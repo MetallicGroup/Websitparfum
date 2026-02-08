@@ -43,17 +43,29 @@ export default function Admin() {
     setError("");
 
     const trimmedPassword = password.trim();
-    const res = await fetch("/api/orders", {
-      headers: {
-        Authorization: `Bearer ${trimmedPassword}`,
-      },
-    });
+    if (!trimmedPassword) {
+      setError("Te rog introdu parola");
+      return;
+    }
 
-    if (res.ok) {
-      setAuthenticated(true);
-    } else {
-      const errorData = await res.json().catch(() => ({}));
-      setError(errorData.error || "Parolă incorectă");
+    try {
+      const res = await fetch("/api/orders", {
+        headers: {
+          Authorization: `Bearer ${trimmedPassword}`,
+        },
+      });
+
+      if (res.ok) {
+        setAuthenticated(true);
+        // Store password for subsequent requests
+        setPassword(trimmedPassword);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.error || "Parolă incorectă");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Eroare la conectare. Te rog încearcă din nou.");
     }
   };
 
@@ -61,19 +73,27 @@ export default function Admin() {
   const {
     data: orders = [],
     isLoading,
+    isError: ordersError,
     refetch,
   } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
-    enabled: authenticated,
+    enabled: authenticated && !!password.trim(),
     queryFn: async () => {
       const res = await fetch("/api/orders", {
         headers: {
-          Authorization: `Bearer ${password}`,
+          Authorization: `Bearer ${password.trim()}`,
         },
       });
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) {
+        if (res.status === 401) {
+          setAuthenticated(false);
+          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        }
+        throw new Error("Unauthorized");
+      }
       return res.json();
     },
+    retry: false,
   });
 
   /* ================= UPDATE STATUS ================= */
@@ -135,17 +155,24 @@ export default function Admin() {
     refetch: refetchStats,
   } = useQuery<{ uniqueVisitors: number; addToCartCount: number }>({
     queryKey: ["admin-stats"],
-    enabled: authenticated,
+    enabled: authenticated && !!password.trim(),
     queryFn: async () => {
       const res = await fetch("/api/stats/today", {
         headers: {
-          Authorization: `Bearer ${password}`,
+          Authorization: `Bearer ${password.trim()}`,
         },
       });
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) {
+        if (res.status === 401) {
+          setAuthenticated(false);
+          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        }
+        throw new Error("Unauthorized");
+      }
       return res.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
   });
 
   /* ================= DASHBOARD ================= */
@@ -179,6 +206,12 @@ export default function Admin() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {ordersError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+          <p className="text-red-600">Eroare la încărcarea comenzilor. Te rog reîncearcă.</p>
         </div>
       )}
 

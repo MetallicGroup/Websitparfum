@@ -12,9 +12,9 @@ const BASE_URL = process.env.BASE_URL || 'https://luxeparfum.store';
 // Email configuration
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
-const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_USER = process.env.SMTP_USER || 'danudda2810@gmail.com';
 const SMTP_PASS = process.env.SMTP_PASS || '';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'danudda2810@gmail.com';
 
 // Create transporter
 const transporter = nodemailer.createTransport({
