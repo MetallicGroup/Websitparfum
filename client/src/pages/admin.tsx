@@ -70,18 +70,21 @@ export default function Admin() {
   };
 
   /* ================= ORDERS ================= */
+  const trimmedPassword = password.trim();
+  const isAuthenticated = authenticated && !!trimmedPassword;
+  
   const {
     data: orders = [],
     isLoading,
     isError: ordersError,
     refetch,
   } = useQuery<Order[]>({
-    queryKey: ["admin-orders"],
-    enabled: authenticated && !!password.trim(),
+    queryKey: ["admin-orders", trimmedPassword],
+    enabled: isAuthenticated,
     queryFn: async () => {
       const res = await fetch("/api/orders", {
         headers: {
-          Authorization: `Bearer ${password.trim()}`,
+          Authorization: `Bearer ${trimmedPassword}`,
         },
       });
       if (!res.ok) {
@@ -92,9 +95,12 @@ export default function Admin() {
     retry: false,
     onError: (error: Error) => {
       console.error("Orders query error:", error);
+      // Use setTimeout to avoid state updates during render
       if (error.message === "Unauthorized") {
-        setAuthenticated(false);
-        setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        setTimeout(() => {
+          setAuthenticated(false);
+          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        }, 0);
       }
     },
   });
@@ -158,12 +164,12 @@ export default function Admin() {
     refetch: refetchStats,
     isError: statsError,
   } = useQuery<{ uniqueVisitors: number; addToCartCount: number }>({
-    queryKey: ["admin-stats"],
-    enabled: authenticated && !!password.trim(),
+    queryKey: ["admin-stats", trimmedPassword],
+    enabled: isAuthenticated,
     queryFn: async () => {
       const res = await fetch("/api/stats/today", {
         headers: {
-          Authorization: `Bearer ${password.trim()}`,
+          Authorization: `Bearer ${trimmedPassword}`,
         },
       });
       if (!res.ok) {
@@ -175,21 +181,17 @@ export default function Admin() {
     retry: false,
     onError: (error: Error) => {
       console.error("Stats query error:", error);
+      // Use setTimeout to avoid state updates during render
       if (error.message === "Unauthorized") {
-        setAuthenticated(false);
-        setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        setTimeout(() => {
+          setAuthenticated(false);
+          setError("Sesiunea a expirat. Te rog autentifică-te din nou.");
+        }, 0);
       }
     },
   });
 
   /* ================= DASHBOARD ================= */
-  // Safety check - if authenticated but password is empty, reset
-  useEffect(() => {
-    if (authenticated && !password.trim()) {
-      setAuthenticated(false);
-    }
-  }, [authenticated, password]);
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex items-center justify-between mb-6">
