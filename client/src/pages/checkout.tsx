@@ -14,6 +14,7 @@ import { CheckCircle2, Truck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { trackTikTokEvent, identifyTikTokUser } from "@/lib/tiktok-pixel";
+import { detectTrafficSource } from "@/lib/traffic-source";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "Prenumele este obligatoriu"),
@@ -106,6 +107,7 @@ export default function Checkout() {
         total: Number(total),
         shippingCost: Number(shippingCost),
         grandTotal: Number(grandTotal),
+        trafficSource: detectTrafficSource(),
       };
       
       // Only include email if it has a value

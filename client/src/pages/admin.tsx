@@ -9,6 +9,9 @@ import {
   CheckCircle,
   Truck,
   XCircle,
+  Facebook,
+  Music,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -193,6 +196,29 @@ export default function Admin() {
                   <MapPin className="w-4 h-4 mt-0.5" />
                   {order.address}, {order.city}, {order.county}
                 </p>
+
+                {order.trafficSource && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {order.trafficSource === 'facebook' && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                        <Facebook className="w-3 h-3" />
+                        <span className="text-xs font-medium">Facebook</span>
+                      </div>
+                    )}
+                    {order.trafficSource === 'tiktok' && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-black text-white rounded">
+                        <Music className="w-3 h-3" />
+                        <span className="text-xs font-medium">TikTok</span>
+                      </div>
+                    )}
+                    {order.trafficSource === 'organic' && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                        <Globe className="w-3 h-3" />
+                        <span className="text-xs font-medium">Organic</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="bg-gray-100 rounded p-3">
                   {order.products.map((p, i) => (

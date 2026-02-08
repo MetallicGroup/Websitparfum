@@ -48,6 +48,7 @@ async function ensureTablesExist() {
         shipping_cost REAL NOT NULL,
         grand_total REAL NOT NULL,
         status TEXT NOT NULL DEFAULT 'pending',
+        traffic_source TEXT,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `);

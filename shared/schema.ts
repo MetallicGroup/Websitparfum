@@ -44,6 +44,7 @@ export const orders = pgTable("orders", {
   shippingCost: real("shipping_cost").notNull(),
   grandTotal: real("grand_total").notNull(),
   status: text("status").notNull().default("pending"),
+  trafficSource: text("traffic_source"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -64,6 +65,7 @@ export const insertOrderSchema = z.object({
   total: z.number().nonnegative(),
   shippingCost: z.number().nonnegative(),
   grandTotal: z.number().nonnegative(),
+  trafficSource: z.string().optional(),
 });
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
