@@ -42,16 +42,18 @@ export default function Admin() {
     e.preventDefault();
     setError("");
 
+    const trimmedPassword = password.trim();
     const res = await fetch("/api/orders", {
       headers: {
-        Authorization: `Bearer ${password}`,
+        Authorization: `Bearer ${trimmedPassword}`,
       },
     });
 
     if (res.ok) {
       setAuthenticated(true);
     } else {
-      setError("Parolă incorectă");
+      const errorData = await res.json().catch(() => ({}));
+      setError(errorData.error || "Parolă incorectă");
     }
   };
 

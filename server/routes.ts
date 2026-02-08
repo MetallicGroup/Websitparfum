@@ -9,7 +9,7 @@ import { sendTikTokPurchaseEvent } from "./tiktok-events-api";
 import { sendFacebookPurchaseEvent, sendFacebookAddPaymentInfoEvent } from "./facebook-conversions-api";
 import { sendCustomerConfirmationEmail, sendAdminNotificationEmail } from "./email-service";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'parfum';
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'parfum').trim();
 const ADMIN_PHONE = process.env.ADMIN_PHONE_NUMBER?.split(',')[0]?.trim() || "";
 const SHIPPING_COST = 19.99;
 const FREE_SHIPPING_THRESHOLD = 250;
@@ -528,7 +528,19 @@ export async function registerRoutes(
   app.get("/api/orders", async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
-      if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
+      const expectedHeader = `Bearer ${ADMIN_PASSWORD}`;
+      
+      // Debug logging (remove in production if needed)
+      console.log('Admin auth attempt:', {
+        hasHeader: !!authHeader,
+        headerLength: authHeader?.length,
+        expectedLength: expectedHeader.length,
+        headerMatch: authHeader === expectedHeader,
+        adminPasswordSet: !!ADMIN_PASSWORD,
+        adminPasswordLength: ADMIN_PASSWORD?.length,
+      });
+      
+      if (!authHeader || authHeader !== expectedHeader) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       
