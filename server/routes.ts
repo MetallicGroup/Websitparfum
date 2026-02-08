@@ -6,6 +6,7 @@ import { insertOrderSchema, insertLeadSchema, type Order, type ConversationState
 import { fromZodError } from "zod-validation-error";
 import { searchProducts, getProductById, getProductsByCategory, type Product } from "./products";
 import { sendTikTokPurchaseEvent } from "./tiktok-events-api";
+import { sendFacebookPurchaseEvent, sendFacebookAddPaymentInfoEvent } from "./facebook-conversions-api";
 import { sendCustomerConfirmationEmail, sendAdminNotificationEmail } from "./email-service";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -572,6 +573,39 @@ export async function registerRoutes(
     }
   });
 
+  // Facebook Conversions API - AddPaymentInfo event endpoint
+  app.post("/api/facebook/add-payment-info", async (req, res) => {
+    try {
+      const { order, userData } = req.body;
+      
+      if (!order || !userData) {
+        return res.status(400).json({ error: "Missing order or userData" });
+      }
+
+      await sendFacebookAddPaymentInfoEvent(
+        {
+          grandTotal: order.grandTotal,
+          products: order.products,
+        },
+        {
+          email: userData.email,
+          phone: userData.phone,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          city: userData.city,
+          state: userData.state,
+          country: userData.country || 'RO',
+          client_user_agent: req.headers['user-agent'] || '',
+        }
+      );
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error sending Facebook AddPaymentInfo event:', error);
+      res.status(500).json({ error: "Failed to send event" });
+    }
+  });
+
   app.post("/api/orders", async (req, res) => {
     try {
       console.log("=== ORDER REQUEST RECEIVED ===");
@@ -646,6 +680,27 @@ export async function registerRoutes(
       await sendTikTokPurchaseEvent(order, {
         ip: Array.isArray(clientIp) ? clientIp[0] : clientIp,
         userAgent: userAgent,
+      });
+
+      // Send Facebook Conversions API - Purchase event
+      const customerEmail = (req.body as any).email;
+      await sendFacebookPurchaseEvent(
+        {
+          grandTotal: order.grandTotal,
+          products: order.products,
+        },
+        {
+          email: customerEmail,
+          phone: order.phoneNumber,
+          firstName: order.customerName.split(' ')[0],
+          lastName: order.customerName.split(' ').slice(1).join(' '),
+          city: order.city,
+          state: order.county,
+          country: 'RO',
+          client_user_agent: userAgent,
+        }
+      ).catch(error => {
+        console.error('Error sending Facebook Purchase event:', error);
       });
 
       // Send email notifications (non-blocking)

@@ -215,6 +215,36 @@ export default function Checkout() {
       currency: 'RON',
     });
 
+    // Facebook Conversions API - AddPaymentInfo event
+    try {
+      await fetch('/api/facebook/add-payment-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: {
+            grandTotal,
+            products: items.map(item => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+            })),
+          },
+          userData: {
+            email: values.email,
+            phone: values.phone,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            city: values.city,
+            state: values.county,
+            country: 'RO',
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Error sending Facebook AddPaymentInfo event:', error);
+    }
+
     createOrderMutation.mutate(values);
   }
 
