@@ -88,11 +88,11 @@ export async function sendTikTokEvent(
       event_time: eventTime,
       properties: {
         currency: data.currency || 'RON',
-        url: data.url || 'https://luxeparfum.com',
+        url: data.url || process.env.BASE_URL || 'https://luxeparfum.store',
       },
       context: {
         page: {
-          url: data.url || 'https://luxeparfum.com',
+          url: data.url || process.env.BASE_URL || 'https://luxeparfum.store',
         },
       },
     };
@@ -233,7 +233,7 @@ export async function sendTikTokPurchaseEvent(
           quantity: product.quantity,
           price: product.price,
         })),
-        url: 'https://luxeparfum.com/checkout',
+        url: `${process.env.BASE_URL || 'https://luxeparfum.store'}/checkout`,
       },
       {
         phone: order.phoneNumber,
@@ -256,7 +256,7 @@ export async function sendTikTokPurchaseEvent(
           quantity: product.quantity,
           price: product.price,
         })),
-        url: 'https://luxeparfum.com/checkout',
+        url: `${process.env.BASE_URL || 'https://luxeparfum.store'}/checkout`,
       },
       {
         phone: order.phoneNumber,

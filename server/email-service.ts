@@ -7,7 +7,7 @@ import { getProductById, products as serverProducts } from './products';
 import type { Order } from '@shared/schema';
 
 // Get base URL from environment or use default
-const BASE_URL = process.env.BASE_URL || 'https://luxeparfum.com';
+const BASE_URL = process.env.BASE_URL || 'https://luxeparfum.store';
 
 // Email configuration
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
@@ -305,7 +305,7 @@ function generateCustomerEmailHTML(order: Order): string {
         Parfumuri de lux autentice
       </p>
       <p style="margin: 10px 0; font-size: 12px;">
-        <a href="${BASE_URL}">www.luxeparfum.com</a>
+        <a href="${BASE_URL}">${BASE_URL.replace('https://', '').replace('http://', '')}</a>
       </p>
     </div>
   </div>
