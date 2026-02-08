@@ -17,7 +17,6 @@ interface FacebookUserData {
   ln?: string[]; // Last name (hashed)
   ct?: string[]; // City (hashed)
   st?: string[]; // State (hashed)
-  country?: string[]; // Country code (2 letters)
   client_user_agent?: string; // Not hashed
 }
 
@@ -81,7 +80,6 @@ export async function sendFacebookEvent(
     lastName?: string;
     city?: string;
     state?: string;
-    country?: string;
     client_user_agent?: string;
   },
   eventId?: string
@@ -123,9 +121,8 @@ export async function sendFacebookEvent(
       user_data.st = [sha256Hash(userData.state)];
     }
 
-    if (userData?.country) {
-      user_data.country = [userData.country.toUpperCase()]; // Country code, not hashed
-    }
+    // Note: country should not be in user_data according to Facebook API
+    // Country codes are not hashed but should be in custom_data if needed
 
     // Build custom_data
     const custom_data: FacebookCustomData = {};
@@ -219,7 +216,6 @@ export async function sendFacebookPurchaseEvent(
     lastName?: string;
     city?: string;
     state?: string;
-    country?: string;
     client_user_agent?: string;
   },
   eventId?: string
@@ -328,7 +324,6 @@ export async function sendFacebookAddPaymentInfoEvent(
     lastName?: string;
     city?: string;
     state?: string;
-    country?: string;
     client_user_agent?: string;
   },
   eventId?: string

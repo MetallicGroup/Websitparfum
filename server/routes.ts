@@ -606,7 +606,6 @@ export async function registerRoutes(
           lastName: userData.lastName,
           city: userData.city,
           state: userData.state,
-          country: userData.country || 'RO',
           client_user_agent: req.headers['user-agent'] || '',
         }
       );
@@ -708,7 +707,6 @@ export async function registerRoutes(
           lastName: order.customerName.split(' ').slice(1).join(' '),
           city: order.city,
           state: order.county,
-          country: 'RO',
           client_user_agent: userAgent,
         }
       ).catch(error => {

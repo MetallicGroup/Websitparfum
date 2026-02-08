@@ -62,6 +62,17 @@ async function ensureTablesExist() {
       console.log("traffic_source column migration completed");
     } catch (error: any) {
       // Column might already exist, that's fine
+    }
+
+    // Add email column if it doesn't exist (migration)
+    try {
+      await pool.query(`
+        ALTER TABLE orders 
+        ADD COLUMN IF NOT EXISTS email TEXT
+      `);
+      console.log("email column migration completed");
+    } catch (error: any) {
+      // Column might already exist, that's fine
       if (error.code !== '42701') { // 42701 = duplicate_column
         console.log("traffic_source column already exists or migration note needed");
       }
