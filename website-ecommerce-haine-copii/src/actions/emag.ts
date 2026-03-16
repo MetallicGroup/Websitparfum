@@ -20,12 +20,19 @@ export async function getPublicIP() {
   }
 }
 
-/**
- * Core function to fetch products from eMAG
- */
 export async function fetchEmagProducts(username: string, password: string) {
   const hash = Buffer.from(`${username}:${password}`).toString("base64");
   
+  // LOG the IP used for THIS specific request to help debugging
+  let currentIp = "unknown";
+  try {
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    currentIp = ipData.ip;
+  } catch (e) {}
+
+  console.log(`[eMAG Debug] Attempting API call from IP: ${currentIp}`);
+
   const response = await fetch(`${EMAG_API_URL}/product_offer/read`, {
     method: "POST",
     headers: {
@@ -35,19 +42,22 @@ export async function fetchEmagProducts(username: string, password: string) {
     body: JSON.stringify({
       data: {
         currentPage: 1,
-        itemsPerPage: 100 // We can paginate later if there are more than 100 products
+        itemsPerPage: 100
       }
     }),
     cache: "no-store"
   });
 
   if (!response.ok) {
-    throw new Error(`eMAG API HTTP Error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`[eMAG Debug] API Error ${response.status}: ${errorText}`);
+    throw new Error(`eMAG API HTTP Error: ${response.status} (IP: ${currentIp})`);
   }
 
   const data = await response.json();
 
   if (data.isError) {
+    console.error(`[eMAG Debug] API Business Error:`, data.messages);
     throw new Error(`eMAG API Error: ${JSON.stringify(data.messages)}`);
   }
 
