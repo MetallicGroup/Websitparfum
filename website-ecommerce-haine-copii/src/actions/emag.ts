@@ -50,7 +50,7 @@ export async function fetchEmagProducts(username: string, password: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[eMAG Debug] API Error ${response.status}: ${errorText}`);
+    console.error(`[eMAG Debug] API Error ${response.status} Body:`, errorText);
     throw new Error(`eMAG API HTTP Error: ${response.status} (IP: ${currentIp})`);
   }
 
