@@ -43,7 +43,7 @@ export async function fetchEmagProducts(username: string, password: string) {
     body: JSON.stringify({
       data: {
         currentPage: 1,
-        itemsPerPage: 10
+        itemsPerPage: 100
       }
     }),
     cache: "no-store"
