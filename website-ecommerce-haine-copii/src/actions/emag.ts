@@ -137,9 +137,9 @@ export async function importEmagProducts(username: string, password: string, cat
     
     // Check if it's an IP whitelist error or Auth error based on eMAG standard msg
     if (error.message && error.message.includes("IP")) {
-       return { success: false, error: "Adresa IP a serverului nostru nu este adăugată în eMAG la secțiunea 'IP-uri valide API'." };
+       return { success: false, error: `${error.message}. Te rugăm să verifici dacă acest IP este adăugat în eMAG la secțiunea 'IP-uri valide API'.` };
     }
-    if (error.message && error.message.includes("hash") || error.message.includes("Authorization")) {
+    if (error.message && (error.message.includes("hash") || error.message.includes("Authorization"))) {
        return { success: false, error: "Date de autentificare incorecte (Utilizator / Parolă)." };
     }
     
