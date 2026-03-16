@@ -20,7 +20,7 @@ export async function getPublicIP() {
   }
 }
 
-export async function fetchEmagProducts(username: string, password: string) {
+export async function fetchEmagProducts(username: string, password: string, page: number = 1) {
   const hash = Buffer.from(`${username}:${password}`).toString("base64");
   
   // LOG the IP used for THIS specific request to help debugging
@@ -31,7 +31,7 @@ export async function fetchEmagProducts(username: string, password: string) {
     currentIp = ipData.ip;
   } catch (e) {}
 
-  console.log(`[eMAG Debug] Attempting API call from IP: ${currentIp}`);
+  console.log(`[eMAG Debug] Page ${page}: Attempting API call from IP: ${currentIp}`);
 
   const response = await fetch(`${EMAG_API_URL}/product_offer/read`, {
     method: "POST",
@@ -42,8 +42,8 @@ export async function fetchEmagProducts(username: string, password: string) {
     },
     body: JSON.stringify({
       data: {
-        currentPage: 1,
-        itemsPerPage: 1000
+        currentPage: page,
+        itemsPerPage: 100
       }
     }),
     cache: "no-store"
@@ -62,7 +62,10 @@ export async function fetchEmagProducts(username: string, password: string) {
     throw new Error(`eMAG API Error: ${JSON.stringify(data.messages)}`);
   }
 
-  return data.results || [];
+  return {
+    results: data.results || [],
+    pagination: data.results?.pagination || { currentPage: page, itemsPerPage: 100, totalItems: 0 }
+  };
 }
 
 function generateSlug(name: string) {
@@ -81,33 +84,50 @@ export async function importEmagProducts(username: string, password: string, cat
       return { success: false, error: "Te rog completează toate câmpurile." };
     }
 
-    // 1. Fetch products from eMAG
-    const emagProducts = await fetchEmagProducts(username, password);
+    let allEmagProducts: any[] = [];
+    let currentPage = 1;
+    let hasMore = true;
+    const maxPages = 15; // Set a safety limit to avoid timeout
 
-    if (!Array.isArray(emagProducts) || emagProducts.length === 0) {
+    // 1. Fetch products from eMAG page by page
+    while (hasMore && currentPage <= maxPages) {
+      const { results } = await fetchEmagProducts(username, password, currentPage);
+      
+      if (Array.isArray(results) && results.length > 0) {
+        allEmagProducts = [...allEmagProducts, ...results];
+        
+        // If we got 100 products, there might be more on the next page
+        if (results.length === 100) {
+          currentPage++;
+        } else {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    if (allEmagProducts.length === 0) {
       return { success: false, error: "Nu s-au găsit produse în contul eMAG, sau datele introduse sunt greșite." };
     }
 
     // 2. Map products to local schema
     let importCount = 0;
     
-    // Process in batches or all at once depending on volume
-    for (const emagProduct of emagProducts) {
-      // Basic validation: ensure we only import active/valid products if wanted?
-      // eMAG returns 'status': 1 (active)
-      // eMAG stock is 'general_stock'
-      
+    for (const emagProduct of allEmagProducts) {
       const stock = parseInt(emagProduct.general_stock || "0", 10);
       const price = parseFloat(emagProduct.sale_price || "0");
       const name = emagProduct.name || "Produs eMAG Necunoscut";
       const description = emagProduct.description || "";
       
-      // Images come as an array of objects
       let imageList = ["/placeholder-toy.png"];
       if (emagProduct.images && Array.isArray(emagProduct.images) && emagProduct.images.length > 0) {
           imageList = emagProduct.images.map((img: any) => img.url).filter(Boolean);
       }
 
+      // Use upsert or find first to avoid duplicates if possible, 
+      // but for simplicity and speed in this context we use create.
+      // We generate a unique slug which helps.
       await prisma.product.create({
         data: {
           name,
@@ -136,7 +156,6 @@ export async function importEmagProducts(username: string, password: string, cat
   } catch (error: any) {
     console.error("eMAG import error details:", error);
     
-    // Check if it's an IP whitelist error or Auth error based on eMAG standard msg
     if (error.message && error.message.includes("403")) {
        return { success: false, error: `Eroare 403 (Acces Interzis). Mesaj eMAG: ${error.message}. Asigură-te că IP-ul de mai sus este EXACT cel din eMAG și că ai dat Save.` };
     }
