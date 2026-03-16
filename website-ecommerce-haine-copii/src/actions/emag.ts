@@ -136,11 +136,11 @@ export async function importEmagProducts(username: string, password: string, cat
     console.error("eMAG import error details:", error);
     
     // Check if it's an IP whitelist error or Auth error based on eMAG standard msg
+    if (error.message && error.message.includes("403")) {
+       return { success: false, error: `Eroare 403 (Acces Interzis). Mesaj eMAG: ${error.message}. Asigură-te că IP-ul de mai sus este EXACT cel din eMAG și că ai dat Save.` };
+    }
     if (error.message && error.message.includes("IP")) {
        return { success: false, error: `${error.message}. Te rugăm să verifici dacă acest IP este adăugat în eMAG la secțiunea 'IP-uri valide API'.` };
-    }
-    if (error.message && (error.message.includes("hash") || error.message.includes("Authorization"))) {
-       return { success: false, error: "Date de autentificare incorecte (Utilizator / Parolă)." };
     }
     
     return { success: false, error: error.message || "Eroare internă. Verifică log-urile." };
