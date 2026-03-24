@@ -60,9 +60,9 @@ export default function Footer() {
           <div className={styles.column}>
             <h3 className={styles.heading}>Contact</h3>
             <ul className={styles.contactList}>
-              <li><MapPin size={18} /> Str. Copilăriei Nr. 1, București</li>
-              <li><Phone size={18} /> 0700 123 456</li>
-              <li><Mail size={18} /> hello@kiddyshop.ro</li>
+              <li><MapPin size={18} /> Str. Principală Nr. 1, București</li>
+              <li><Phone size={18} /> 07xx xxx xxx</li>
+              <li><Mail size={18} /> contact@kiddyshop.ro</li>
             </ul>
             <div className={styles.trustBadges}>
               {/* Trust badge placeholders */}

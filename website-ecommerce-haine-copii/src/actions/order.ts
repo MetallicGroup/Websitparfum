@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma/client";
 import { revalidatePath } from "next/cache";
+import { sendOrderConfirmationEmail, sendAdminOrderAlert } from "./email";
 
 type OrderData = {
   customerInfo: {
@@ -29,38 +30,70 @@ type OrderData = {
 export async function createOrder(data: OrderData) {
   try {
     const { customerInfo, shippingMethod, paymentMethod, items, subtotal, shippingCost, total } = data;
-
     const shippingAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.county}`;
 
-    await prisma.order.create({
-      data: {
-        customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
-        customerEmail: customerInfo.email,
-        customerPhone: customerInfo.phone,
-        customerAddress: shippingAddress,
-        status: "PENDING",
-        paymentMethod: paymentMethod.toUpperCase(), // e.g. "CARD", "RAMBURS"
-        deliveryMethod: shippingMethod.toUpperCase(), // e.g. "SAMEDAY", "EASYBOX", "FANCOURIER"
-        subtotal: subtotal,
-        shippingCost: shippingCost,
-        total: total,
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-            variation: item.variation,
-          }))
+    // 1. Transaction to create order and decrement stock
+    const order = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+          customerEmail: customerInfo.email,
+          customerPhone: customerInfo.phone,
+          customerAddress: shippingAddress,
+          status: "PENDING",
+          paymentMethod: paymentMethod.toUpperCase(),
+          deliveryMethod: shippingMethod.toUpperCase(),
+          subtotal: subtotal,
+          shippingCost: shippingCost,
+          total: total,
+          items: {
+            create: items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+              variation: item.variation,
+            }))
+          }
         }
+      });
+
+      // Update stock for each product
+      for (const item of items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity
+            }
+          }
+        });
       }
+
+      return newOrder;
     });
+
+    // 2. Trigger Email Notifications (Simulated/Async)
+    const orderForEmail = {
+      id: order.id,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      total: order.total
+    };
+    
+    // Non-blocking trigger
+    sendOrderConfirmationEmail(orderForEmail).catch(error => 
+      console.error("Failed to send customer confirmation:", error)
+    );
+    sendAdminOrderAlert(orderForEmail).catch(error => 
+      console.error("Failed to send admin alert:", error)
+    );
 
     revalidatePath("/admin/orders");
     
-    return { success: true };
+    return { success: true, orderId: order.id };
   } catch (error) {
     console.error("Eroare la crearea comenzii:", error);
-    return { success: false, error: "Database error." };
+    return { success: false, error: "Eroare la procesarea comenzii în baza de date." };
   }
 }
 
@@ -78,4 +111,3 @@ export async function updateOrderStatus(orderId: string, status: string) {
     return { success: false, error: "Database error." };
   }
 }
-

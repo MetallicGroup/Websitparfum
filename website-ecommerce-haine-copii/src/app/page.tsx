@@ -3,9 +3,22 @@ import { ArrowRight, Star, ShieldCheck, Truck, Clock } from "lucide-react";
 import styles from "./page.module.css";
 import { getProducts } from "@/actions/product";
 import Butterflies from "@/components/ui/Butterflies";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Acasă | KiddyShop - Magazin de Haine și Jucării pentru Copii",
+  description: "Cea mai variată gamă de haine și jucării pentru copii și bebeluși. Calitate premium și livrare rapidă.",
+};
 
 export default async function Home() {
-  const { data: popularProducts } = await getProducts({ isPopular: true, take: 4 });
+  const { data: popularProductsRaw } = await getProducts({ isPopular: true, take: 4 });
+  
+  // Fallback to latest products if no popular products are found
+  let popularProducts = popularProductsRaw;
+  if (!popularProducts || popularProducts.length === 0) {
+    const { data: latestProducts } = await getProducts({ take: 4 });
+    popularProducts = latestProducts;
+  }
 
   return (
     <div className={styles.homeContainer}>
@@ -75,7 +88,6 @@ export default async function Home() {
           </Link>
         </div>
         <div className={styles.categoryGrid}>
-          {/* Mock Categories */}
           <Link href="/shop?category=haine" className={`${styles.categoryCard} ${styles.catBg1}`}>
             <span className={styles.catEmoji}>👗</span>
             <h3>Haine Copii</h3>
@@ -111,7 +123,6 @@ export default async function Home() {
               return (
                 <div key={product.id} className={styles.productCard}>
                   <Link href={`/product/${product.id}`} className={styles.productImgWrap}>
-                    {/* Placeholder image representation */}
                     <div className={styles.productPlaceholderImg} style={{ backgroundImage: `url(${images[0]})` }}>
                       {!images[0] && "📷 Imagine Produs"}
                     </div>
@@ -131,22 +142,10 @@ export default async function Home() {
               );
             })
           ) : (
-            // Mock empty state placeholders
-            [1, 2, 3, 4].map((i) => (
-              <div key={i} className={styles.productCard}>
-                <div className={styles.productImgWrap}>
-                   <div className={styles.productPlaceholderImg}>Exemplu Produs {i}</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <p className={styles.productCat}>Jucării</p>
-                  <span className={styles.productName}>Ursuleț de pluș mare</span>
-                  <div className={styles.productPriceRow}>
-                    <span className={styles.productPrice}>120.00 Lei</span>
-                    <button className={styles.addToCartSmall}>+</button>
-                  </div>
-                </div>
-              </div>
-            ))
+            <div className={styles.noProducts}>
+              <p>Momentan nu există produse recomandate. Explorează magazinul nostru!</p>
+              <Link href="/shop" className="btn btn-secondary mt-2">Vezi toate produsele</Link>
+            </div>
           )}
         </div>
       </section>

@@ -119,10 +119,10 @@ export default async function ShopPage({
               <ProductCard key={p.id} product={p as ProductWithCategory} />
             ))
           ) : (
-            // Mock empty states
-            Array.from({ length: 9 }).map((_, i) => (
-              <MockProductCard key={i} index={i} />
-            ))
+            <div className={styles.noProducts}>
+              <p>Nu am găsit produse care să corespundă filtrelor tale.</p>
+              <Link href="/shop" className="btn btn-secondary mt-2">Resetează Filtrele</Link>
+            </div>
           )}
         </div>
       </main>
@@ -148,26 +148,6 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
         </Link>
         <div className={styles.productPriceRow}>
           <span className={styles.productPrice}>{product.price.toFixed(2)} Lei</span>
-          <button className={styles.addToCartSmall}>+</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MockProductCard({ index }: { index: number }) {
-  return (
-    <div className={styles.productCard}>
-      <Link href={`/product/mock-${index}`} className={styles.productImgWrap}>
-        <div className={styles.productPlaceholderImg}>Exemplu {index + 1}</div>
-      </Link>
-      <div className={styles.productInfo}>
-        <p className={styles.productCat}>Haine Copii</p>
-        <Link href={`/product/mock-${index}`} className={styles.productName}>
-          Tricou din Bumbac Bio cu Print Jucăuș
-        </Link>
-        <div className={styles.productPriceRow}>
-          <span className={styles.productPrice}>65.00 Lei</span>
           <button className={styles.addToCartSmall}>+</button>
         </div>
       </div>

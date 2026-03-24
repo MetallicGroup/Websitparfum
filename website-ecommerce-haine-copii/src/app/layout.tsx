@@ -13,8 +13,12 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Magazin Copii - Premium",
-  description: "Haine, jucării și accesorii premium pentru copii.",
+  title: {
+    default: "KiddyShop - Totul pentru copilul tău",
+    template: "%s | KiddyShop"
+  },
+  description: "Magazin online premium pentru copii și bebeluși. Haine, jucării și accesorii de calitate.",
+  metadataBase: new URL('https://kiddyshop.ro'),
 };
 
 import Header from "@/components/layout/Header";

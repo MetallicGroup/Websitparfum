@@ -6,6 +6,7 @@ import { Trash2, ArrowRight } from "lucide-react";
 import styles from "./cart.module.css";
 import { useCart } from "@/context/CartContext";
 import CartCrossSell from "./CartCrossSell";
+import Butterflies from "@/components/ui/Butterflies";
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, subtotal } = useCart();
@@ -41,6 +42,7 @@ export default function CartPage() {
 
   return (
     <div className={`container ${styles.cartContainer}`}>
+      <Butterflies count={15} />
       <h1 className={styles.pageTitle}>Coșul de Cumpărături</h1>
       
       <div className={styles.cartLayout}>

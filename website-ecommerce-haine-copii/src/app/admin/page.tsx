@@ -109,16 +109,7 @@ export default async function AdminDashboardPage() {
                </tr>
             )}
             
-            {/* Mock Data Injection for layout visualization if DB is strictly empty */}
-            {latestOrders.length === 0 && (
-              <tr>
-                 <td>#A8B2C4</td>
-                 <td>Mihai Popescu</td>
-                 <td>Astăzi</td>
-                 <td><span className={`${styles.badgeStatus} ${styles.statusPending}`}>În așteptare</span></td>
-                 <td><strong>325.00 Lei</strong></td>
-              </tr>
-            )}
+            {latestOrders.length === 0 && null}
           </tbody>
         </table>
       </div>

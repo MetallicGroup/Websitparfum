@@ -111,7 +111,7 @@ export async function importEmagProducts(username: string, password: string, cat
       return { success: false, error: "Nu s-au găsit produse în contul eMAG, sau datele introduse sunt greșite." };
     }
 
-    // 2. Map products to local schema
+      // 2. Map products to local schema
     let importCount = 0;
     
     for (const emagProduct of allEmagProducts) {
@@ -120,9 +120,29 @@ export async function importEmagProducts(username: string, password: string, cat
       const name = emagProduct.name || "Produs eMAG Necunoscut";
       const description = emagProduct.description || "";
       
-      let imageList = ["/placeholder-toy.png"];
-      if (emagProduct.images && Array.isArray(emagProduct.images) && emagProduct.images.length > 0) {
-          imageList = emagProduct.images.map((img: any) => img.url).filter(Boolean);
+      let imageList: string[] = [];
+      
+      // Robust Image Extraction
+      // 1. Check top-level images array
+      if (emagProduct.images && Array.isArray(emagProduct.images)) {
+        imageList = emagProduct.images.map((img: any) => {
+          if (typeof img === 'string') return img;
+          return img.url || img.url_id || null;
+        }).filter(Boolean);
+      }
+
+      // 2. Check nested product.images (sometimes eMAG wraps details)
+      if (imageList.length === 0 && emagProduct.product?.images && Array.isArray(emagProduct.product.images)) {
+        imageList = emagProduct.product.images.map((img: any) => {
+          if (typeof img === 'string') return img;
+          return img.url || img.url_id || null;
+        }).filter(Boolean);
+      }
+
+      // 3. Last resort fallback
+      if (imageList.length === 0) {
+        imageList = ["/placeholder-toy.png"];
+        console.warn(`[eMAG Debug] No images found for product: ${name}. Structure:`, JSON.stringify(emagProduct).slice(0, 500));
       }
 
       // Use upsert or find first to avoid duplicates if possible, 
