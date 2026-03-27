@@ -7,7 +7,7 @@ import { Product, Category } from "@prisma/client";
 import { useCart } from "@/context/CartContext";
 import AddToCartModal from "@/components/cart/AddToCartModal";
 
-type ProductWithCategory = Product & { category?: Category | null };
+type ProductWithCategory = Product & { emagId?: string | null; category?: Category | null };
 
 export default function ProductGallery({ product }: { product: ProductWithCategory }) {
   const { addToCart } = useCart();

@@ -23,16 +23,6 @@ export async function getPublicIP() {
 export async function fetchEmagProducts(username: string, password: string, page: number = 1) {
   const hash = Buffer.from(`${username}:${password}`).toString("base64");
   
-  // LOG the IP used for THIS specific request to help debugging
-  let currentIp = "unknown";
-  try {
-    const ipRes = await fetch("https://api.ipify.org?format=json");
-    const ipData = await ipRes.json();
-    currentIp = ipData.ip;
-  } catch (e) {}
-
-  console.log(`[eMAG Debug] Page ${page}: Attempting API call from IP: ${currentIp}`);
-
   const response = await fetch(`${EMAG_API_URL}/product_offer/read`, {
     method: "POST",
     headers: {
@@ -43,7 +33,8 @@ export async function fetchEmagProducts(username: string, password: string, page
     body: JSON.stringify({
       data: {
         currentPage: page,
-        itemsPerPage: 100
+        itemsPerPage: 100,
+        with_product: 1 // Request product details including images
       }
     }),
     cache: "no-store"
@@ -51,14 +42,12 @@ export async function fetchEmagProducts(username: string, password: string, page
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[eMAG Debug] API Error ${response.status} Body:`, errorText);
-    throw new Error(`eMAG API HTTP Error: ${response.status} (IP: ${currentIp})`);
+    throw new Error(`eMAG API HTTP Error: ${response.status}`);
   }
 
   const data = await response.json();
 
   if (data.isError) {
-    console.error(`[eMAG Debug] API Business Error:`, data.messages);
     throw new Error(`eMAG API Error: ${JSON.stringify(data.messages)}`);
   }
 
@@ -84,19 +73,25 @@ export async function importEmagProducts(username: string, password: string, cat
       return { success: false, error: "Te rog completează toate câmpurile." };
     }
 
+    // LOG the IP used for THIS specific request to help debugging
+    let currentIp = "unknown";
+    try {
+      const ipRes = await fetch("https://api.ipify.org?format=json");
+      const ipData = await ipRes.json();
+      currentIp = ipData.ip;
+      console.log(`[eMAG Debug] Starting import from IP: ${currentIp}`);
+    } catch (e) {}
+
     let allEmagProducts: any[] = [];
     let currentPage = 1;
     let hasMore = true;
-    const maxPages = 15; // Set a safety limit to avoid timeout
+    const maxPages = 20; 
 
-    // 1. Fetch products from eMAG page by page
     while (hasMore && currentPage <= maxPages) {
       const { results } = await fetchEmagProducts(username, password, currentPage);
       
       if (Array.isArray(results) && results.length > 0) {
         allEmagProducts = [...allEmagProducts, ...results];
-        
-        // If we got 100 products, there might be more on the next page
         if (results.length === 100) {
           currentPage++;
         } else {
@@ -108,48 +103,80 @@ export async function importEmagProducts(username: string, password: string, cat
     }
 
     if (allEmagProducts.length === 0) {
-      return { success: false, error: "Nu s-au găsit produse în contul eMAG, sau datele introduse sunt greșite." };
+      return { success: false, error: "Nu s-au găsit produse în contul eMAG." };
     }
 
-      // 2. Map products to local schema
     let importCount = 0;
     
     for (const emagProduct of allEmagProducts) {
+      const emagId = String(emagProduct.id || emagProduct.product_id || "");
+      if (!emagId) continue;
+
       const stock = parseInt(emagProduct.general_stock || "0", 10);
       const price = parseFloat(emagProduct.sale_price || "0");
-      const name = emagProduct.name || "Produs eMAG Necunoscut";
-      const description = emagProduct.description || "";
+      const name = emagProduct.name || emagProduct.product?.name || "Produs eMAG";
+      const description = emagProduct.description || emagProduct.product?.description || "";
       
       let imageList: string[] = [];
       
-      // Robust Image Extraction
-      // 1. Check top-level images array
-      if (emagProduct.images && Array.isArray(emagProduct.images)) {
-        imageList = emagProduct.images.map((img: any) => {
-          if (typeof img === 'string') return img;
+      // Exhaustive Image Extraction
+      const extractFrom = (obj: any) => {
+        if (!obj) return [];
+        if (Array.isArray(obj)) return obj.map(img => {
+          if (typeof img === "string") return img;
           return img.url || img.url_id || null;
         }).filter(Boolean);
+        if (typeof obj === "object") return [obj.url || obj.url_id].filter(Boolean);
+        return [];
+      };
+
+      // 1. Check top-level images
+      imageList = [...imageList, ...extractFrom(emagProduct.images)];
+      
+      // 2. Check nested product.images
+      if (emagProduct.product?.images) {
+        imageList = [...imageList, ...extractFrom(emagProduct.product.images)];
       }
 
-      // 2. Check nested product.images (sometimes eMAG wraps details)
-      if (imageList.length === 0 && emagProduct.product?.images && Array.isArray(emagProduct.product.images)) {
-        imageList = emagProduct.product.images.map((img: any) => {
-          if (typeof img === 'string') return img;
-          return img.url || img.url_id || null;
-        }).filter(Boolean);
+      // 3. Check variants for images (Crucial for Fashion)
+      if (emagProduct.product?.variants && Array.isArray(emagProduct.product.variants)) {
+        for (const variant of emagProduct.product.variants) {
+           imageList = [...imageList, ...extractFrom(variant.images)];
+        }
       }
 
-      // 3. Last resort fallback
+      // 4. Check media
+      if (emagProduct.product?.media?.images) {
+         imageList = [...imageList, ...extractFrom(emagProduct.product.media.images)];
+      }
+
+      // 5. Check attachments
+      if (emagProduct.attachments) {
+         imageList = [...imageList, ...extractFrom(emagProduct.attachments)];
+      }
+
+      // De-duplicate URLs
+      imageList = [...new Set(imageList)].filter(url => typeof url === "string" && url.startsWith("http"));
+
+      // Fallback
       if (imageList.length === 0) {
         imageList = ["/placeholder-toy.png"];
-        console.warn(`[eMAG Debug] No images found for product: ${name}. Structure:`, JSON.stringify(emagProduct).slice(0, 500));
       }
 
-      // Use upsert or find first to avoid duplicates if possible, 
-      // but for simplicity and speed in this context we use create.
-      // We generate a unique slug which helps.
-      await prisma.product.create({
-        data: {
+      // UPSERT logic to avoid duplicates and update images
+      // Using type casting as a temporary workaround for lint errors if types haven't refreshed
+      await (prisma.product as any).upsert({
+        where: { emagId: emagId },
+        update: {
+          name,
+          description,
+          price,
+          stock,
+          images: JSON.stringify(imageList),
+          updatedAt: new Date()
+        },
+        create: {
+          emagId,
           name,
           slug: generateSlug(name),
           description,
@@ -167,22 +194,13 @@ export async function importEmagProducts(username: string, password: string, cat
       importCount++;
     }
 
-    // 3. Revalidate cache
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 
     return { success: true, count: importCount };
 
   } catch (error: any) {
-    console.error("eMAG import error details:", error);
-    
-    if (error.message && error.message.includes("403")) {
-       return { success: false, error: `Eroare 403 (Acces Interzis). Mesaj eMAG: ${error.message}. Asigură-te că IP-ul de mai sus este EXACT cel din eMAG și că ai dat Save.` };
-    }
-    if (error.message && error.message.includes("IP")) {
-       return { success: false, error: `${error.message}. Te rugăm să verifici dacă acest IP este adăugat în eMAG la secțiunea 'IP-uri valide API'.` };
-    }
-    
-    return { success: false, error: error.message || "Eroare internă. Verifică log-urile." };
+    console.error("eMAG import error:", error);
+    return { success: false, error: error.message || "Eroare internă." };
   }
 }

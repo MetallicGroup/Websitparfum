@@ -12,6 +12,7 @@ export default async function ProductPage({
   
   // Try fetching. If fails/not found, mock
   type ProductWithCategoryAndReviews = import("@prisma/client").Product & { 
+    emagId?: string | null;
     category?: import("@prisma/client").Category | null;
     reviews?: import("@prisma/client").Review[];
   };
@@ -31,6 +32,7 @@ export default async function ProductPage({
     // Generate Mock for visual layout purposes if database is empty
     product = {
       id: unresolvedParams.id,
+      emagId: null,
       name: "Tricou Bumbac Jucăuș Premium",
       slug: "tricou-mock",
       description: "Un tricou minunat pentru copilul tău, creat din bumbac bio 100%. Oferă respirație liberă pielii și conține un print colorat, perfect pentru zilele de vară pline de energie. Se spală ușor și rezistă la nenumărate aventuri și pete neașteptate.",
@@ -49,9 +51,11 @@ export default async function ProductPage({
     };
   }
 
+  if (!product) return <div>Produsul nu a fost găsit.</div>;
+
   return (
     <div className={`container ${styles.pageWrapper}`}>
-      <ProductGallery product={product} />
+      <ProductGallery product={product as any} />
 
       <section className={styles.tabsSection}>
         {/* Simple Tab Headers (visually active first) */}
