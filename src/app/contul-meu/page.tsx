@@ -14,7 +14,13 @@ export default async function AccountPage() {
 
   const orders = await prisma.order.findMany({
     where: { userId: user.id },
-    include: { items: true },
+    include: { 
+      items: {
+        include: {
+          product: true
+        }
+      } 
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -64,7 +70,7 @@ export default async function AccountPage() {
                 <div className={styles.orderItems}>
                   {order.items.map((item) => (
                     <div key={item.id} className={styles.itemRow}>
-                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemName}>{item.product.name}</span>
                       <span className={styles.itemQty}>x{item.quantity}</span>
                       <span className={styles.itemPrice}>{(item.price * item.quantity).toFixed(2)} Lei</span>
                     </div>
