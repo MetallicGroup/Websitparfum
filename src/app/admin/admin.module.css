@@ -278,6 +278,8 @@
 .actionBtns {
   display: flex;
   gap: 0.5rem;
+  position: relative;
+  z-index: 100;
 }
 
 .actionBtn {

@@ -87,7 +87,10 @@ export default function AdminProductsClient({ initialProducts, categories }: { i
         <div className="flex gap-4">
           <button 
              className="btn flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-all shadow-sm"
-             onClick={() => setIsEmagModalOpen(true)}
+             onClick={() => {
+               alert("eMAG button clicked");
+               setIsEmagModalOpen(true);
+             }}
           >
             <DownloadCloud size={18} />
             Importă eMAG
@@ -155,7 +158,10 @@ export default function AdminProductsClient({ initialProducts, categories }: { i
                         <button 
                           className={styles.actionBtn} 
                           aria-label="Editează" 
-                          onClick={() => setEditingProduct(p)}
+                          onClick={() => {
+                            alert("Edit clicked for: " + p.name);
+                            setEditingProduct(p);
+                          }}
                         >
                           <Edit2 size={16} />
                         </button>
