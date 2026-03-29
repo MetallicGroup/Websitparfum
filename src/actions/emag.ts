@@ -140,6 +140,8 @@ export async function importEmagProducts(username: string, password: string) {
       const name = emagProduct.name || emagProduct.product?.name || "Produs eMAG";
       const description = emagProduct.description || emagProduct.product?.description || "";
       
+      console.log(`[eMAG Debug] Processing product: ${name} (ID: ${emagProduct.part_number_key || emagProduct.product_id})`);
+      
       // Auto-map category
       const mappedCategoryId = mapCategory(name) || localCategories[0]?.id;
       if (!mappedCategoryId) continue;
