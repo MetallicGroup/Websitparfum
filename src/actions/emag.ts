@@ -133,7 +133,7 @@ export async function importEmagProducts(username: string, password: string) {
     for (const emagProduct of allEmagProducts) {
       // Only accept genuine part number keys or product IDs, never legacy sequential offer IDs
       const emagId = String(emagProduct.part_number_key || emagProduct.product_id || "");
-      if (!emagId || emagId.length < 5) continue;
+      if (!emagId || emagId.length < 1) continue;
 
       const stock = parseInt(emagProduct.general_stock || "0", 10);
       const price = parseFloat(emagProduct.sale_price || "0");
