@@ -191,6 +191,7 @@ export async function importEmagProducts(username: string, password: string) {
 
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
 
     return { 
       success: true, 

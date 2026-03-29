@@ -106,6 +106,7 @@ export async function createFullProduct(data: any) {
 
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
     return { success: true, data: newProduct };
   } catch (error: any) {
     console.error("Error creating product:", error);
@@ -123,6 +124,7 @@ export async function deleteProduct(id: string) {
     });
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
     return { success: true };
   } catch (error) {
     console.error("Error deleting product:", error);
@@ -161,7 +163,8 @@ export async function updateProduct(id: string, data: any) {
 
     revalidatePath("/admin/products");
     revalidatePath("/shop");
-    revalidatePath(`/shop/${id}`); // If individual product paths exist
+    revalidatePath(`/product/${id}`);
+    revalidatePath("/");
     
     return { success: true };
   } catch (error: any) {

@@ -74,6 +74,7 @@ export async function importProductsCSV(csvText: string, categoryIdMapping: Reco
 
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
     return { success: true, count: importedCount };
   } catch (error) {
     console.error("Error importing products:", error);
