@@ -313,3 +313,23 @@
   background-color: var(--color-turquoise);
   transform: scale(1.1);
 }
+
+.lowStockBadgeSmall {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.65rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.outOfStockBadgeSmall {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.65rem;
+  font-weight: 800;
+  white-space: nowrap;
+}

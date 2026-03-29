@@ -133,6 +133,12 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
         </Link>
         <div className={styles.productPriceRow}>
           <span className={styles.productPrice}>{product.price.toFixed(2)} Lei</span>
+          {product.stock > 0 && product.stock <= 5 && (
+            <span className={styles.lowStockBadgeSmall}>🔥 Doar {product.stock}</span>
+          )}
+          {product.stock <= 0 && (
+            <span className={styles.outOfStockBadgeSmall}>Epuizat</span>
+          )}
           <button className={styles.addToCartSmall}>+</button>
         </div>
       </div>

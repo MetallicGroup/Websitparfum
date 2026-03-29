@@ -148,6 +148,12 @@
   color: var(--color-turquoise-dark);
 }
 
+.stockInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .inStock {
   background-color: #E6F4EA;
   color: #137333;
@@ -155,6 +161,20 @@
   border-radius: var(--border-radius-pill);
   font-size: 0.875rem;
   font-weight: 700;
+  width: fit-content;
+}
+
+.lowStockWarning {
+  color: #ea4335;
+  font-weight: 700;
+  font-size: 0.875rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .outOfStock {

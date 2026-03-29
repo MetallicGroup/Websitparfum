@@ -104,7 +104,12 @@ export default function ProductGallery({ product }: { product: ProductWithCatego
         <div className={styles.priceContainer}>
           <span className={styles.price}>{product.price.toFixed(2)} Lei</span>
           {product.stock > 0 ? (
-            <span className={styles.inStock}>În Stoc</span>
+            <div className={styles.stockInfo}>
+              <span className={styles.inStock}>În Stoc</span>
+              {product.stock <= 5 && (
+                <span className={styles.lowStockWarning}>🔥 Doar {product.stock} rămase!</span>
+              )}
+            </div>
           ) : (
              <span className={styles.outOfStock}>Stoc Epuizat</span>
           )}

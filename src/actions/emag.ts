@@ -86,11 +86,17 @@ export async function importEmagProducts(username: string, password: string) {
     const localCategories = await prisma.category.findMany();
     const mapCategory = (productName: string) => {
       const name = productName.toLowerCase();
-      if (name.match(/jucar|lego|plus|puzzle|interactiv/)) return localCategories.find(c => c.slug === 'jucarii')?.id;
-      if (name.match(/rochi|fust/)) return localCategories.find(c => c.slug === 'rochii-fetite')?.id;
-      if (name.match(/bebe|scutec|luni|nou-nascut|body/)) return localCategories.find(c => c.slug === 'bebe')?.id;
-      if (name.match(/accesor|caciul|manus|fular|soset/)) return localCategories.find(c => c.slug === 'accesorii')?.id;
-      // Default to "Haine"
+      // Expanded keyword matching for Romanian market
+      if (name.match(/jucar|lego|plus|puzzle|interactiv|pupa|masinuta|papusa|robot|joc/)) return localCategories.find(c => c.slug === 'jucarii')?.id;
+      if (name.match(/rochi|fust|balet|printesa/)) return localCategories.find(c => c.slug === 'rochii-fetite')?.id;
+      if (name.match(/comple|set|trening|pijama|tricou|pantaloni|geaca|haina/)) return localCategories.find(c => c.slug === 'haine')?.id;
+      if (name.match(/bebe|scutec|luni|nou-nascut|body|salopeta|biberon|suzeta/)) return localCategories.find(c => c.slug === 'bebe')?.id;
+      if (name.match(/accesor|caciul|manus|fular|soset|bentita|agrafa|ghiozdan|rucsac/)) return localCategories.find(c => c.slug === 'accesorii')?.id;
+      
+      // Look for age-based categories if they exist (e.g. "0-3 luni")
+      if (name.match(/0-3 luni|3-6 luni|6-9 luni/)) return localCategories.find(c => c.slug === 'bebe')?.id;
+      
+      // Default fallback
       return localCategories.find(c => c.slug === 'haine')?.id || localCategories[0]?.id;
     };
 
