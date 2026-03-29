@@ -27,13 +27,16 @@ export default function CheckoutPage() {
   }, []);
 
   // Fetch PaymentIntent whenever subtotal or shipping changes if payment is card
+  const [paymentIntentError, setPaymentIntentError] = useState("");
   useEffect(() => {
     if (paymentMethod === 'card' && subtotal > 0 && isClient) {
+      setPaymentIntentError("");
       const total = subtotal + getShippingCost();
       createPaymentIntent(total).then(res => {
         setClientSecret(res.clientSecret || "");
       }).catch(err => {
         console.error("PaymentIntent Error:", err);
+        setPaymentIntentError("Eroare la activarea plății cu cardul. Te rugăm să încerci din nou sau să alegi altă metodă.");
       });
     }
   }, [paymentMethod, subtotal, shippingMethod, isClient]);
@@ -244,15 +247,31 @@ export default function CheckoutPage() {
               </label>
             </div>
 
-            {paymentMethod === 'card' && clientSecret && (
-              <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Finalizează Plata</h3>
-                <Elements stripe={stripePromise} options={{ clientSecret, locale: 'ro' }}>
-                  <StripePaymentForm 
-                    totalAmount={subtotal + getShippingCost()} 
-                    onSuccess={handleStripeSuccess} 
-                  />
-                </Elements>
+            {paymentMethod === 'card' && (
+              <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--color-turquoise-dark)' }}>Finalizează Plata cu Cardul</h3>
+                
+                {!clientSecret && !paymentIntentError && (
+                  <div className="flex items-center gap-2 text-gray-500 py-4">
+                    <div className="w-5 h-5 border-2 border-turquoise border-t-transparent rounded-full animate-spin"></div>
+                    Securizăm tranzacția prin Stripe...
+                  </div>
+                )}
+                
+                {paymentIntentError && (
+                  <div style={{ color: '#ef4444', padding: '1rem', border: '1px solid #fee2e2', background: '#fef1f2', borderRadius: '8px' }}>
+                    {paymentIntentError}
+                  </div>
+                )}
+                
+                {clientSecret && (
+                  <Elements stripe={stripePromise} options={{ clientSecret, locale: 'ro' }}>
+                    <StripePaymentForm 
+                      totalAmount={subtotal + getShippingCost()} 
+                      onSuccess={handleStripeSuccess} 
+                    />
+                  </Elements>
+                )}
               </div>
             )}
           </div>
@@ -287,15 +306,20 @@ export default function CheckoutPage() {
             <span>{(subtotal + getShippingCost()).toFixed(2)} Lei</span>
           </div>
 
-          {paymentMethod === 'ramburs' && (
+          {paymentMethod === 'ramburs' ? (
             <button 
               type="submit" 
               form="checkout-form"
               className={`btn btn-primary ${styles.placeOrderBtn}`}
               disabled={isLoading}
+              style={{ width: '100%', padding: '1rem' }}
             >
               {isLoading ? "Se procesează..." : "Confirmă Comanda"}
             </button>
+          ) : (
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-500 text-center">
+              Pentru plata cu cardul, te rugăm să completezi câmpurile Stripe din secțiunea de plată din stânga.
+            </div>
           )}
 
           <div className={styles.termsNotice}>
