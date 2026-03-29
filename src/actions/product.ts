@@ -11,8 +11,12 @@ export async function uploadImage(formData: FormData) {
       return { success: false, error: "Nu a fost găsit niciun fișier." };
     }
 
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
     if (!supabase) {
-      return { success: false, error: "Supabase client is not initialized. Check your environment variables (NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY)." };
+      return { success: false, error: "Supabase client is not initialized. Check your environment variables (NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY) in Vercel Dashboard." };
     }
 
     const { data, error } = await supabase.storage
