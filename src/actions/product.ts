@@ -157,6 +157,8 @@ export async function updateProduct(id: string, data: any) {
     // Use the images array provided or keep the existing one if not provided
     const imagesStr = Array.isArray(images) ? JSON.stringify(images) : undefined;
 
+    console.log(`[Admin Debug] Updating product ${id}:`, { name, priceNum, imagesStr });
+
     await (prisma.product as any).update({
       where: { id },
       data: {
