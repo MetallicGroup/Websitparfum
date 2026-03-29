@@ -105,13 +105,12 @@ export default function AddProductModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">SKU (Cod Intern) *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">SKU (Cod Intern)</label>
                 <input 
                   type="text" 
                   name="sku" 
                   value={formData.sku} 
                   onChange={handleChange} 
-                  required 
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-turquoise"
                   placeholder="Ex: cb259"
                 />
@@ -219,13 +218,12 @@ export default function AddProductModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Mărime (CM) *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Mărime (CM)</label>
                 <input 
                   type="text" 
                   name="sizeCm" 
                   value={formData.sizeCm} 
                   onChange={handleChange} 
-                  required 
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-turquoise"
                   placeholder="Ex: 80cm - 86cm"
                 />

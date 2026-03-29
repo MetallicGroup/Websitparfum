@@ -160,7 +160,6 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
                 name="sku"
                 value={formData.sku}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-turquoise" 
               />
             </div>

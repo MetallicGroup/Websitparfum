@@ -71,8 +71,8 @@ export async function createFullProduct(data: any) {
   try {
     const { name, description, price, stock, categoryId, minAge, maxAge, sku, sizeCm, images, variations } = data;
     
-    if (!name || !price || isNaN(parseFloat(price)) || !categoryId || !sku) {
-      return { success: false, error: "Date obligatorii lipsă (Nume, Preț, Categorie, SKU)." };
+    if (!name || !price || isNaN(parseFloat(price)) || !categoryId) {
+      return { success: false, error: "Date obligatorii lipsă (Nume, Preț, Categorie)." };
     }
 
     const priceNum = parseFloat(price);
@@ -93,8 +93,8 @@ export async function createFullProduct(data: any) {
         price: priceNum,
         stock: stockNum,
         categoryId,
-        sku,
-        sizeCm,
+        sku: sku || null,
+        sizeCm: sizeCm || null,
         minAge: minAgeNum,
         maxAge: maxAgeNum,
         images: imagesStr,
@@ -151,8 +151,8 @@ export async function updateProduct(id: string, data: any) {
         price: priceNum,
         stock: stockNum,
         categoryId,
-        sku,
-        sizeCm,
+        sku: sku || null,
+        sizeCm: sizeCm || null,
         ...(imagesStr && { images: imagesStr }),
         ...(variations && { variations }),
         updatedAt: new Date()
