@@ -129,16 +129,16 @@ export default function EmagImportModal({ onClose, categories }: EmagImportModal
             </button>
             <button
               type="submit"
-              disabled={isImporting || isSyncingImages}
+              disabled={isImporting}
               className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-sm transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-               {isImporting || isSyncingImages ? (
+               {isImporting ? (
                  <>
                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                   {isSyncingImages ? "Sincronizare..." : "Se Importă..."}
+                   Se Importă...
                  </>
                ) : (
-                 'Începe Sincronizarea'
+                 'Începe Importul Fără Poze'
                )}
             </button>
           </div>

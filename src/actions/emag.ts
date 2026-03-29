@@ -138,82 +138,48 @@ export async function importEmagProducts(username: string, password: string) {
       const mappedCategoryId = mapCategory(name) || localCategories[0]?.id;
       if (!mappedCategoryId) continue;
       
-      let imageList: string[] = [];
+      // Skip image extraction as requested by the user for manual management
+      const imageList: string[] = [];
+
+      // UPSERT logic: New products get no images, existing ones stay as they are if they have images?
+      // Actually, the user said "incarc produsele ... fara nici o poza", usually implies new ones.
+      // If updating, I'll keep existing images to avoid data loss, but for NEW ones it's empty.
       
-      // Exhaustive Image Extraction
-      const extractFrom = (obj: any) => {
-        if (!obj) return [];
-        if (Array.isArray(obj)) return obj.map(img => {
-          if (typeof img === "string") return img;
-          return img.url || img.url_id || null;
-        }).filter(Boolean);
-        if (typeof obj === "object") return [obj.url || obj.url_id].filter(Boolean);
-        return [];
-      };
-
-      // 1. Check top-level images
-      imageList = [...imageList, ...extractFrom(emagProduct.images)];
-      
-      // 2. Check nested product.images
-      if (emagProduct.product?.images) {
-        imageList = [...imageList, ...extractFrom(emagProduct.product.images)];
-      }
-
-      // 3. Check variants for images (Crucial for Fashion)
-      if (emagProduct.product?.variants && Array.isArray(emagProduct.product.variants)) {
-        for (const variant of emagProduct.product.variants) {
-           imageList = [...imageList, ...extractFrom(variant.images)];
-        }
-      }
-
-      // 4. Check media
-      if (emagProduct.product?.media?.images) {
-         imageList = [...imageList, ...extractFrom(emagProduct.product.media.images)];
-      }
-
-      // 5. Check attachments
-      if (emagProduct.attachments) {
-         imageList = [...imageList, ...extractFrom(emagProduct.attachments)];
-      }
-
-      // De-duplicate URLs
-      imageList = [...new Set(imageList)].filter(url => typeof url === "string" && url.startsWith("http"));
-
-      // Fallback
-      if (imageList.length === 0) {
-        imageList = ["/placeholder-toy.png"];
-        missingImagesIds.push(emagId);
-      }
-
-      // UPSERT logic to avoid duplicates and update images
-      // Using type casting as a temporary workaround for lint errors if types haven't refreshed
-      await (prisma.product as any).upsert({
-        where: { emagId: emagId },
-        update: {
-          name,
-          description,
-          price,
-          stock,
-          categoryId: mappedCategoryId,
-          images: JSON.stringify(imageList),
-          updatedAt: new Date()
-        },
-        create: {
-          emagId,
-          name,
-          slug: generateSlug(name),
-          description,
-          price,
-          stock,
-          categoryId: mappedCategoryId,
-          images: JSON.stringify(imageList),
-          variations: JSON.stringify([]),
-          minAge: 0,
-          maxAge: 168,
-          isPopular: false,
-          isNew: true
-        }
+      const existingProduct = await (prisma.product as any).findUnique({
+        where: { emagId: emagId }
       });
+
+      if (existingProduct) {
+        await (prisma.product as any).update({
+          where: { emagId: emagId },
+          data: {
+            name,
+            description,
+            price,
+            stock,
+            categoryId: mappedCategoryId,
+            updatedAt: new Date()
+          }
+        });
+      } else {
+        await (prisma.product as any).create({
+          data: {
+            emagId,
+            name,
+            slug: generateSlug(name),
+            description,
+            price,
+            stock,
+            categoryId: mappedCategoryId,
+            images: JSON.stringify([]),
+            variations: JSON.stringify([]),
+            minAge: 0,
+            maxAge: 168,
+            isPopular: false,
+            isNew: true
+          }
+        });
+      }
       importCount++;
     }
 
