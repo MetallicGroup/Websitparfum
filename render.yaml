@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: kiddyshop
+    env: node
+    buildCommand: npm install && prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
