@@ -17,8 +17,8 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
   const [formData, setFormData] = useState({
     name: product.name,
     description: product.description,
-    price: product.price.toString(),
-    stock: product.stock.toString(),
+    price: (product.price || 0).toString(),
+    stock: (product.stock || 0).toString(),
     categoryId: product.categoryId,
     sku: (product as any).sku || "",
     sizeCm: (product as any).sizeCm || "",
@@ -91,11 +91,16 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent} style={{ maxWidth: '800px', width: '90%' }}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>Editează Produs</h2>
-          <button onClick={onClose} className={styles.closeBtn}><X size={20} /></button>
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-xl font-bold text-gray-800">Editează Produs</h2>
+          <button 
+            onClick={onClose} 
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
@@ -275,18 +280,18 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 bg-gray-50/50 p-6">
             <button 
               type="button" 
               onClick={onClose}
-              className="px-6 py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 bg-white transition-colors"
             >
               Anulează
             </button>
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="px-6 py-2 bg-turquoise text-white rounded-lg font-medium hover:opacity-90 transition-all flex items-center gap-2"
+              className="px-6 py-2 bg-turquoise text-white rounded-lg font-medium hover:bg-turquoise-dark transition-all flex items-center gap-2 shadow-sm disabled:opacity-50"
             >
               {isSubmitting ? "Se salvează..." : <><Save size={18} /> Salvează Modificările</>}
             </button>
