@@ -63,3 +63,33 @@ export async function getSessionUser() {
     return null;
   }
 }
+
+export async function getCustomers() {
+  try {
+    const customers = await prisma.user.findMany({
+      where: { role: "USER" },
+      include: {
+        _count: {
+          select: { orders: true }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    return { success: true, data: customers };
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    return { success: false, error: "Nu am putut încărca lista de clienți." };
+  }
+}
+
+export async function deleteUser(id: string) {
+  try {
+    await prisma.user.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return { success: false, error: "Nu am putut șterge utilizatorul." };
+  }
+}
