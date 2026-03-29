@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
-import styles from "../../app/shop/shop.module.css";
+import styles from "../../app/(shop)/shop/shop.module.css";
 import { Category } from "@prisma/client";
 
 export default function ShopSidebar({ categories }: { categories: Category[] }) {
