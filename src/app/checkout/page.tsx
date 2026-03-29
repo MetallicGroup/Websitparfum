@@ -6,6 +6,12 @@ import styles from "./checkout.module.css";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { createOrder } from "@/actions/order";
+import { createPaymentIntent } from "@/actions/payments";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentForm from "./StripePaymentForm";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
 
 export default function CheckoutPage() {
   const { cart, subtotal, clearCart } = useCart();
@@ -14,10 +20,23 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState("sameday");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isLoading, setIsLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Fetch PaymentIntent whenever subtotal or shipping changes if payment is card
+  useEffect(() => {
+    if (paymentMethod === 'card' && subtotal > 0 && isClient) {
+      const total = subtotal + getShippingCost();
+      createPaymentIntent(total).then(res => {
+        setClientSecret(res.clientSecret || "");
+      }).catch(err => {
+        console.error("PaymentIntent Error:", err);
+      });
+    }
+  }, [paymentMethod, subtotal, shippingMethod, isClient]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -40,13 +59,20 @@ export default function CheckoutPage() {
     return 25;
   };
 
-  const handleCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCheckout = async (e?: React.FormEvent, paymentIntentId?: string) => {
+    if (e) e.preventDefault();
+
     if (cart.length === 0) {
       alert("Coșul este gol!");
       return;
     }
     
+    // Basic validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address) {
+       alert("Te rugăm să completezi toate datele obligatorii.");
+       return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -57,23 +83,28 @@ export default function CheckoutPage() {
         items: cart,
         subtotal,
         shippingCost: getShippingCost(),
-        total: subtotal + getShippingCost()
+        total: subtotal + getShippingCost(),
+        paymentIntentId: paymentIntentId || null
       };
 
       const result = await createOrder(orderData);
       
       if (result.success) {
-        alert("Comanda a fost plasată cu succes! Vei fi contactat pentru detalii.");
+        alert("Comandă confirmată! Vei primi un e-mail de confirmare.");
         clearCart();
-        window.location.href = "/";
+        window.location.href = "/contul-meu";
       } else {
-        alert("A apărut o eroare la salvarea comenzii: " + result.error);
+        alert("Eroare: " + result.error);
       }
     } catch {
-      alert("A apărut o eroare necunoscută la plasarea comenzii.");
+      alert("A apărut o eroare necunoscută.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleStripeSuccess = (id: string) => {
+    handleCheckout(undefined, id);
   };
 
   if (!isClient) return null;
@@ -190,79 +221,88 @@ export default function CheckoutPage() {
             <div className={styles.formGroup}>
               <h2 className={styles.sectionHeading}>4. Metodă de Plată</h2>
               <div className={styles.radioGrid}>
-                 <label className={`${styles.radioCard} ${paymentMethod === 'card' ? styles.activeRadio : ''}`}>
-                    <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
-                    <div className={styles.radioContent}>
-                      <div className={styles.iconBox}><CreditCard size={24} /></div>
-                      <div>
-                        <strong>Card Bancar (MOCK)</strong>
-                        <p>Simulare tranzacție (Comanda salvată, plata simulată prin bypass)</p>
-                      </div>
-                    </div>
-                 </label>
+              <label className={`${styles.radioCard} ${paymentMethod === 'card' ? styles.activeRadio : ''}`}>
+                <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
+                <div className={styles.radioContent}>
+                  <div className={styles.iconBox}><CreditCard size={24} /></div>
+                  <div>
+                    <strong>Card Bancar (Stripe)</strong>
+                    <p>Plată securizată cu cardul.</p>
+                  </div>
+                </div>
+              </label>
 
-                 <label className={`${styles.radioCard} ${paymentMethod === 'ramburs' ? styles.activeRadio : ''}`}>
-                    <input type="radio" name="payment" value="ramburs" checked={paymentMethod === 'ramburs'} onChange={() => setPaymentMethod('ramburs')} />
-                    <div className={styles.radioContent}>
-                      <div className={styles.iconBox}><Wallet size={24} /></div>
-                      <div>
-                        <strong>Ramburs la livrare</strong>
-                        <p>Plătești curierului.</p>
-                      </div>
-                    </div>
-                 </label>
-              </div>
+              <label className={`${styles.radioCard} ${paymentMethod === 'ramburs' ? styles.activeRadio : ''}`}>
+                <input type="radio" name="payment" value="ramburs" checked={paymentMethod === 'ramburs'} onChange={() => setPaymentMethod('ramburs')} />
+                <div className={styles.radioContent}>
+                  <div className={styles.iconBox}><Wallet size={24} /></div>
+                  <div>
+                    <strong>Ramburs la livrare</strong>
+                    <p>Plătești curierului la primire.</p>
+                  </div>
+                </div>
+              </label>
             </div>
 
-          </form>
+            {paymentMethod === 'card' && clientSecret && (
+              <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Finalizează Plata</h3>
+                <Elements stripe={stripePromise} options={{ clientSecret, locale: 'ro' }}>
+                  <StripePaymentForm 
+                    totalAmount={subtotal + getShippingCost()} 
+                    onSuccess={handleStripeSuccess} 
+                  />
+                </Elements>
+              </div>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <div className={styles.summarySection}>
+        <div className={styles.summaryCard}>
+          <h2>Sumar Comandă</h2>
+          <div className={styles.itemsList}>
+            {cart.map(item => (
+              <div key={item.id} className={styles.summaryItem}>
+                <span>{item.quantity}x {item.name} {item.variation && `(${item.variation})`}</span>
+                <span>{(item.quantity * item.price).toFixed(2)} Lei</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.divider}></div>
+          <div className={styles.summaryRow}>
+            <span>Subtotal</span>
+            <span>{subtotal.toFixed(2)} Lei</span>
+          </div>
+          <div className={styles.summaryRow}>
+            <span>Livrare ({shippingMethod})</span>
+            <span>{getShippingCost() === 0 ? "Gratuit" : `${getShippingCost().toFixed(2)} Lei`}</span>
+          </div>
+
+          <div className={styles.divider}></div>
+          <div className={`${styles.summaryRow} ${styles.totalRow}`}>
+            <span>Total</span>
+            <span>{(subtotal + getShippingCost()).toFixed(2)} Lei</span>
+          </div>
+
+          {paymentMethod === 'ramburs' && (
+            <button 
+              type="submit" 
+              form="checkout-form"
+              className={`btn btn-primary ${styles.placeOrderBtn}`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Se procesează..." : "Confirmă Comanda"}
+            </button>
+          )}
+
+          <div className={styles.termsNotice}>
+            Prin plasarea comenzii, ești de acord cu <Link href="/termeni">Termenii și Condițiile</Link>.
+          </div>
         </div>
-
-        {/* Right Col: Summary */}
-        <div className={styles.summarySection}>
-           <div className={styles.summaryCard}>
-              <h2>Sumar Comandă</h2>
-              
-              <div className={styles.itemsList}>
-                 {cart.map(item => (
-                   <div key={item.id} className={styles.summaryItem}>
-                      <span>{item.quantity}x {item.name} {item.variation && `(${item.variation})`}</span>
-                      <span>{(item.quantity * item.price).toFixed(2)} Lei</span>
-                   </div>
-                 ))}
-              </div>
-
-              <div className={styles.divider}></div>
-              
-              <div className={styles.summaryRow}>
-                 <span>Subtotal</span>
-                 <span>{subtotal.toFixed(2)} Lei</span>
-              </div>
-              <div className={styles.summaryRow}>
-                 <span>Livrare ({shippingMethod})</span>
-                 <span>{getShippingCost() === 0 ? "Gratuit" : `${getShippingCost().toFixed(2)} Lei`}</span>
-              </div>
-
-              <div className={styles.divider}></div>
-              
-              <div className={`${styles.summaryRow} ${styles.totalRow}`}>
-                 <span>Total</span>
-                 <span>{(subtotal + getShippingCost()).toFixed(2)} Lei</span>
-              </div>
-
-              <button 
-                type="submit" 
-                form="checkout-form"
-                className={`btn btn-primary ${styles.placeOrderBtn}`}
-                disabled={isLoading}
-              >
-                {isLoading ? "Se procesează..." : "Trimite Comanda"}
-              </button>
-
-              <div className={styles.termsNotice}>
-                Prin plasarea comenzii, ești de acord cu <Link href="/termeni">Termenii și Condițiile</Link>.
-              </div>
-           </div>
-        </div>
+      </div>
       </div>
     </div>
   );

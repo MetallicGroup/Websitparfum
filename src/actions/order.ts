@@ -25,6 +25,7 @@ type OrderData = {
   subtotal: number;
   shippingCost: number;
   total: number;
+  paymentIntentId?: string | null;
 };
 
 export async function createOrder(data: OrderData) {
@@ -67,12 +68,13 @@ export async function createOrder(data: OrderData) {
           customerEmail: customerInfo.email,
           customerPhone: customerInfo.phone,
           customerAddress: shippingAddress,
-          status: "PENDING",
-          paymentMethod: paymentMethod.toUpperCase(),
-          deliveryMethod: shippingMethod.toUpperCase(),
-          subtotal: subtotal,
-          shippingCost: shippingCost,
-          total: total,
+          status: data.paymentIntentId ? "PROCESSING" : "PENDING",
+          paymentMethod: data.paymentMethod,
+          deliveryMethod: data.shippingMethod,
+          subtotal: data.subtotal,
+          shippingCost: data.shippingCost,
+          total: data.total,
+          stripePaymentIntentId: data.paymentIntentId,
           items: {
             create: items.map((item) => ({
               productId: item.productId,
