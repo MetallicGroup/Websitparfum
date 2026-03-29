@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma/client";
 import ProductGallery from "./ProductGallery";
 import styles from "./product.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductPage({
   params,
 }: {

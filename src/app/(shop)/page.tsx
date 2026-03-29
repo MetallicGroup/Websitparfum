@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "Cea mai variată gamă de haine și jucării pentru copii și bebeluși. Calitate premium și livrare rapidă.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { data: popularProductsRaw } = await getProducts({ isPopular: true, take: 4 });
   

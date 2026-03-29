@@ -23,16 +23,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // Dynamic products
-  const products = await prisma.product.findMany({
-    select: { id: true, updatedAt: true }
-  })
+  let productRoutes: any[] = []
+  try {
+    const products = await prisma.product.findMany({
+      select: { id: true, updatedAt: true }
+    })
 
-  const productRoutes = products.map((product) => ({
-    url: `${baseUrl}/product/${product.id}`,
-    lastModified: product.updatedAt,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
+    productRoutes = products.map((product) => ({
+      url: `${baseUrl}/product/${product.id}`,
+      lastModified: product.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  } catch (e) {
+    console.error("Sitemap generation error (non-fatal):", e)
+  }
 
   return [...routes, ...productRoutes]
 }
