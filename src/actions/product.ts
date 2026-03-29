@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma/client";
 import { revalidatePath } from "next/cache";
-import { put } from "@vercel/blob";
+import { supabase } from "@/lib/supabase";
 
 export async function uploadImage(formData: FormData) {
   try {
@@ -11,16 +11,24 @@ export async function uploadImage(formData: FormData) {
       return { success: false, error: "Nu a fost găsit niciun fișier." };
     }
 
-    // Upload to Vercel Blob
-    // Note: requires BLOB_READ_WRITE_TOKEN in environment
-    const blob = await put(file.name, file, {
-      access: 'public',
-    });
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
 
-    return { success: true, url: blob.url };
-  } catch (error) {
-    console.error("Error uploading to Vercel Blob:", error);
-    return { success: false, error: "Eroare la încărcarea imaginii în cloud. Asigură-te că BLOB_READ_WRITE_TOKEN este setat." };
+    const { data, error } = await supabase.storage
+      .from('kiddyshop') // We'll assume bucket name is 'kiddyshop'
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('kiddyshop')
+      .getPublicUrl(filePath);
+
+    return { success: true, url: publicUrl };
+  } catch (error: any) {
+    console.error("Error uploading to Supabase Storage:", error);
+    return { success: false, error: "Eroare la încărcarea imaginii. Cod: " + (error.message || "Unknown") };
   }
 }
 

@@ -1,17 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
-if (!tursoUrl && process.env.NODE_ENV === "production") {
-  throw new Error("CRITICAL STARTUP ERROR: TURSO_DATABASE_URL is missing in Next.js production runtime!");
-}
-
-const adapter = new PrismaLibSql({
-  url: tursoUrl || "file:./dev.db",
-  authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
-});
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
 
 export const prisma =
   globalForPrisma.prisma || new PrismaClient({ adapter });
