@@ -1,0 +1,298 @@
+/* ADMIN LAYOUT CSS MODULE */
+
+.adminContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-gray-50);
+}
+
+.sidebar {
+  width: 260px;
+  background-color: var(--color-white);
+  border-right: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+}
+
+.logoWrap {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-gray-900);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.logo span {
+  color: var(--color-turquoise-dark);
+}
+
+.navMenu {
+  flex-grow: 1;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-gray-800);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  background-color: var(--color-pink-light);
+  color: var(--color-pink-dark);
+}
+
+.activeNavLink {
+  background-color: var(--color-turquoise);
+  color: var(--color-white);
+}
+
+.sidebarFooter {
+  padding: 1.5rem 1rem;
+  border-top: 1px solid var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  color: #DC2626; /* Red 600 */
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background-color: #FEE2E2; /* Red 100 */
+}
+
+/* MAIN CONTENT */
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Important for flex child truncation */
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.topbarLeft h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.adminAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-turquoise);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.contentWrap {
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+/* COMMON ADMIN CLASSES */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 1.75rem;
+  color: var(--color-gray-900);
+}
+
+.dashboardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background-color: var(--color-white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.statIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statIcon.sales { background-color: #E0F7FA; color: #00838F; }
+.statIcon.orders { background-color: #FCE4EC; color: #C2185B; }
+.statIcon.products { background-color: #FFF8E1; color: #F57F17; }
+.statIcon.users { background-color: #F3E5F5; color: #7B1FA2; }
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.statValue {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-gray-900);
+}
+
+.tableSection {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tableHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tableTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background-color: var(--color-gray-50);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dataTable td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  color: var(--color-gray-800);
+  vertical-align: middle;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+.dataTable tr:hover td {
+  background-color: var(--color-gray-50);
+}
+
+.badgeStatus {
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusPending { background-color: #FFF3E0; color: #E65100; }
+.statusProcessing { background-color: #E3F2FD; color: #1565C0; }
+.statusShipped { background-color: #E8F5E9; color: #2E7D32; }
+.statusCancelled { background-color: #FFEBEE; color: #C62828; }
+
+.actionBtns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s;
+}
+
+.actionBtn:hover {
+  color: var(--color-turquoise-dark);
+}
+
+.actionBtn.deleteHover:hover {
+  color: #DC2626;
+}
