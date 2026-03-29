@@ -21,10 +21,6 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://kiddyshop.ro'),
 };
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-
-import { CartProvider } from "@/context/CartContext";
 
 export default function RootLayout({
   children,
@@ -34,15 +30,7 @@ export default function RootLayout({
   return (
     <html lang="ro">
       <body className={`${nunito.variable} ${quicksand.variable}`}>
-        <CartProvider>
-          <div className="layout-container">
-            <Header />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </CartProvider>
+        {children}
       </body>
     </html>
   );
