@@ -42,6 +42,8 @@ export default async function ProductPage({
       slug: "tricou-mock",
       description: "Un tricou minunat pentru copilul tău, creat din bumbac bio 100%. Oferă respirație liberă pielii și conține un print colorat, perfect pentru zilele de vară pline de energie. Se spală ușor și rezistă la nenumărate aventuri și pete neașteptate.",
       price: 85.00,
+      minPrice: 75.00,
+      maxPrice: 95.00,
       stock: 12,
       sizeCm: null,
       category: { id: "mock-cat", name: "Haine Copii", slug: "haine", description: null, type: "PRODUCT", createdAt: new Date(), updatedAt: new Date() },
