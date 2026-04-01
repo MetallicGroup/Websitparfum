@@ -15,6 +15,17 @@ export default async function ShopPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  await prisma.category.upsert({
+    where: { slug: "noutati" },
+    update: { name: "Noutati", type: "PRODUCT" },
+    create: {
+      name: "Noutati",
+      slug: "noutati",
+      type: "PRODUCT",
+      description: "Produse noi adaugate in magazin."
+    }
+  });
+
   const unresolvedSearchParams = await searchParams;
   const categoryFilter = unresolvedSearchParams.category as string;
   const q = unresolvedSearchParams.q as string;

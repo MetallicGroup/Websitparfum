@@ -38,6 +38,8 @@ model Product {
   slug        String   @unique
   description String
   price       Float
+  minPrice    Float?
+  maxPrice    Float?
   stock       Int      @default(0)
   sizeCm      String?
   minAge      Int      @default(0) // in months or years, map correctly later

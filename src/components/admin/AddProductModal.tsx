@@ -21,6 +21,8 @@ export default function AddProductModal({
     name: "",
     description: "",
     price: "",
+    minPrice: "",
+    maxPrice: "",
     stock: "",
     categoryId: categories[0]?.id || "",
     sku: "",
@@ -154,6 +156,35 @@ export default function AddProductModal({
                   required 
                   disabled={variations.length > 0}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-turquoise bg-gray-50"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Preț Minim (Lei)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="minPrice"
+                  value={formData.minPrice}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-turquoise"
+                  placeholder="Ex: 59.99"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Preț Maxim (Lei)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="maxPrice"
+                  value={formData.maxPrice}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-turquoise"
+                  placeholder="Ex: 89.99"
                 />
               </div>
             </div>

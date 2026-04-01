@@ -81,13 +81,15 @@ export async function getProductById(id: string) {
 
 export async function createFullProduct(data: any) {
   try {
-    const { name, description, price, stock, categoryId, minAge, maxAge, sku, sizeCm, images, variations } = data;
+    const { name, description, price, minPrice, maxPrice, stock, categoryId, minAge, maxAge, sku, sizeCm, images, variations } = data;
     
     if (!name || !price || isNaN(parseFloat(price)) || !categoryId) {
       return { success: false, error: "Date obligatorii lipsă (Nume, Preț, Categorie)." };
     }
 
     const priceNum = parseFloat(price);
+    const minPriceNum = minPrice !== undefined && minPrice !== "" ? parseFloat(minPrice) : null;
+    const maxPriceNum = maxPrice !== undefined && maxPrice !== "" ? parseFloat(maxPrice) : null;
     const stockNum = parseInt(stock, 10) || 0;
     const minAgeNum = parseInt(minAge, 10) || 0;
     const maxAgeNum = parseInt(maxAge, 10) || 0;
@@ -103,6 +105,8 @@ export async function createFullProduct(data: any) {
         slug,
         description,
         price: priceNum,
+        minPrice: Number.isFinite(minPriceNum) ? minPriceNum : null,
+        maxPrice: Number.isFinite(maxPriceNum) ? maxPriceNum : null,
         stock: stockNum,
         categoryId,
         sku: sku || null,
@@ -145,13 +149,15 @@ export async function deleteProduct(id: string) {
 }
 export async function updateProduct(id: string, data: any) {
   try {
-    const { name, description, price, stock, categoryId, sku, sizeCm, images, variations } = data;
+    const { name, description, price, minPrice, maxPrice, stock, categoryId, sku, sizeCm, images, variations } = data;
     
     if (!name || !price || isNaN(parseFloat(price)) || !categoryId) {
       return { success: false, error: "Date obligatorii lipsă." };
     }
 
     const priceNum = parseFloat(price);
+    const minPriceNum = minPrice !== undefined && minPrice !== "" ? parseFloat(minPrice) : null;
+    const maxPriceNum = maxPrice !== undefined && maxPrice !== "" ? parseFloat(maxPrice) : null;
     const stockNum = parseInt(stock, 10) || 0;
     
     // Use the images array provided or keep the existing one if not provided
@@ -165,6 +171,8 @@ export async function updateProduct(id: string, data: any) {
         name,
         description,
         price: priceNum,
+        minPrice: Number.isFinite(minPriceNum) ? minPriceNum : null,
+        maxPrice: Number.isFinite(maxPriceNum) ? maxPriceNum : null,
         stock: stockNum,
         categoryId,
         sku: sku || null,

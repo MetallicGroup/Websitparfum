@@ -18,6 +18,8 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
     name: product.name,
     description: product.description,
     price: (product.price || 0).toString(),
+    minPrice: ((product as any).minPrice ?? "").toString(),
+    maxPrice: ((product as any).maxPrice ?? "").toString(),
     stock: (product.stock || 0).toString(),
     categoryId: product.categoryId,
     sku: (product as any).sku || "",
@@ -155,6 +157,32 @@ export default function EditProductModal({ product, categories, onClose, onUpdat
                 required
                 disabled={variations.length > 0}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 mb-1" 
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Preț Minim (Lei)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="minPrice"
+                value={formData.minPrice}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-turquoise"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Preț Maxim (Lei)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="maxPrice"
+                value={formData.maxPrice}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-turquoise"
               />
             </div>
 
