@@ -10,21 +10,35 @@ type ProductWithCategory = Product & { category?: Category | null };
 
 export const dynamic = "force-dynamic";
 
+function safeParseImages(images: string | null): string[] {
+  if (!images) return [];
+  try {
+    const parsed = JSON.parse(images);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function ShopPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  await prisma.category.upsert({
-    where: { slug: "noutati" },
-    update: { name: "Noutati", type: "PRODUCT" },
-    create: {
-      name: "Noutati",
-      slug: "noutati",
-      type: "PRODUCT",
-      description: "Produse noi adaugate in magazin."
-    }
-  });
+  try {
+    await prisma.category.upsert({
+      where: { slug: "noutati" },
+      update: { name: "Noutati", type: "PRODUCT" },
+      create: {
+        name: "Noutati",
+        slug: "noutati",
+        type: "PRODUCT",
+        description: "Produse noi adaugate in magazin."
+      }
+    });
+  } catch (error) {
+    console.error("Shop page: failed to ensure noutati category:", error);
+  }
 
   const unresolvedSearchParams = await searchParams;
   const categoryFilter = unresolvedSearchParams.category as string;
@@ -68,15 +82,22 @@ export default async function ShopPage({
   else if (sort === "popular") orderBy.isPopular = "desc";
   else orderBy.createdAt = "desc";
 
-  const products = await prisma.product.findMany({
-    where: whereClause,
-    include: { category: true },
-    orderBy
-  });
+  let products: ProductWithCategory[] = [];
+  let categories: Category[] = [];
 
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" }
-  });
+  try {
+    products = await prisma.product.findMany({
+      where: whereClause,
+      include: { category: true },
+      orderBy
+    }) as ProductWithCategory[];
+
+    categories = await prisma.category.findMany({
+      orderBy: { name: "asc" }
+    });
+  } catch (error) {
+    console.error("Shop page: failed loading products/categories:", error);
+  }
 
   return (
     <div className={`container ${styles.shopLayout}`}>
@@ -128,7 +149,7 @@ export default async function ShopPage({
 }
 
 function ProductCard({ product }: { product: ProductWithCategory }) {
-  const images = JSON.parse(product.images || "[]");
+  const images = safeParseImages(product.images);
   return (
     <div className={styles.productCard}>
       <Link href={`/product/${product.id}`} className={styles.productImgWrap}>
